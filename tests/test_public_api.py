@@ -6,7 +6,7 @@ refactors do not break them.
 '''
 import pytest
 
-from dutch_syllabifier import (Phone, Syllable, check_syllabification,
+from dutch_syllabifier import (Phone, Result, Syllable, check_syllabification,
     is_legal_syllable, syllabify)
 
 
@@ -70,6 +70,39 @@ def test_check_already_syllabified():
     assert check_syllabification([['h', 'ɛ', 'l'], ['p', 'ə']]).ok
     assert check_syllabification([['s', 't', 'r', 'aː', 't']]).ok
     assert check_syllabification([['h', 'ɛ', 'r', 'f', 's', 't']]).ok
+
+
+def test_result_current_and_suggested_are_syllables():
+    # incorrect boundaries: ɑp.rɪl -> maximal onset ɑ.prɪl
+    r = check_syllabification([['ɑ', 'p'], ['r', 'ɪ', 'l']])
+    assert not r.ok
+    assert shapes(r.current) == [['ɑ', 'p'], ['r', 'ɪ', 'l']]
+    assert shapes(r.suggested) == [['ɑ'], ['p', 'r', 'ɪ', 'l']]
+    # both tiers are lists of Syllable objects
+    assert all(isinstance(s, Syllable) for s in r.current)
+    assert all(isinstance(s, Syllable) for s in r.suggested)
+
+
+def test_result_input_preserves_original_objects():
+    a, b = Syllable(['h', 'ɛ', 'l']), Syllable(['p', 'ə'])
+    r = check_syllabification([a, b])
+    assert r.ok
+    # input holds the exact objects passed in (identity preserved)
+    assert r.input[0] is a and r.input[1] is b
+    # current is a normalised copy, not the original objects
+    assert r.current[0] is not a
+
+
+def test_result_repr_omits_segmentation_str_shows_it():
+    r = check_syllabification([['ɑ', 'p'], ['r', 'ɪ', 'l']])
+    text = repr(r)
+    assert text.startswith('Result(ok=False')
+    assert 'current' not in text and 'suggested' not in text
+    lines = str(r).splitlines()
+    assert lines[0] == repr(r)
+    assert 'current:' in lines[1] and 'suggested:' in lines[2]
+    # labels are right-justified so the colons align
+    assert lines[1].index(':') == lines[2].index(':')
 
 
 def test_phone_object():
