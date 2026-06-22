@@ -124,6 +124,50 @@ result.reason      # explanation
 result.suggested   # suggested syllabification when boundaries are wrong
 ```
 
+## Validating phraser segments
+
+The package can validate segments coming from a
+[phraser](https://github.com/martijnbentum/phraser) store (or any objects with
+the same shape). It works purely by duck typing, so it adds **no dependency on
+phraser**: a syllable only needs a `.phones` attribute (each phone exposing
+`.label`), and a word or phrase only needs a `.syllables` attribute.
+
+There are two tiers per segment:
+
+* `is_valid_syllable` / `is_valid_word` / `is_valid_phrase` return a `bool`.
+* `analyse_syllable` / `analyse_word` / `analyse_phrase` return a `Result`
+  (`.ok`, `.reason`, `.suggested`).
+
+```python
+from dutch_syllabifier import (is_valid_word, is_valid_phrase,
+    analyse_word, analyse_phrase)
+
+# bool tier
+is_valid_word(word)            # True if stored boundaries follow maximal onset
+is_valid_phrase(phrase)        # True for the whole phrase
+
+# detail tier
+result = analyse_word(word)
+result.ok                      # bool
+result.reason                  # explanation
+result.suggested               # suggested syllabification when boundaries differ
+```
+
+Word and phrase checks use the segment's `.syllables`, so a phrase is validated
+as one sequence — boundaries that span **word boundaries** are checked too. Use
+the phrase function rather than looping over words.
+
+Both tiers are **total**: input the engine cannot check (an unknown phone label
+or an empty segment) never raises here. The bool tier returns `False`; the
+`analyse_*` tier returns a falsy `Result` whose `reason` starts with
+`could not analyse:`, so an *uncheckable* segment stays distinguishable from an
+*incorrect* one.
+
+```python
+analyse_word(empty_word).reason
+# 'could not analyse: no syllables to check'
+```
+
 ## Data files
 
 Machine-readable phonotactic data ships inside the package:
