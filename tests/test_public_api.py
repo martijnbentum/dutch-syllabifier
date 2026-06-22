@@ -7,7 +7,7 @@ refactors do not break them.
 import pytest
 
 from dutch_syllabifier import (Phone, Result, Syllable, check_syllabification,
-    is_legal_syllable, syllabify)
+    is_legal_syllable, resyllabify_phones, syllabify)
 
 
 def shapes(syllables):
@@ -97,6 +97,29 @@ def test_result_repr_omits_segmentation_str_shows_it():
     r = check_syllabification([['ɑ', 'p'], ['r', 'ɪ', 'l']])
     assert ' . ' not in repr(r)        # repr carries no segmentation
     assert ' . ' in str(r)             # str does
+
+
+def test_resyllabify_phones_regroups_same_objects():
+    # ɑprɪl -> ɑ . prɪl, holding the exact phone objects passed in
+    phones = [Phone('ɑ'), Phone('p'), Phone('r'), Phone('ɪ'), Phone('l')]
+    groups = resyllabify_phones(phones)
+    assert [[p.label for p in g] for g in groups] == \
+        [['ɑ'], ['p', 'r', 'ɪ', 'l']]
+    # identity preserved: same objects, just regrouped
+    assert groups[0][0] is phones[0]
+    assert groups[1][0] is phones[1]
+
+
+def test_resyllabify_phones_agrees_with_syllabify():
+    phones = ['ɑ', 'p', 'r', 'ɪ', 'l']
+    assert resyllabify_phones(phones) == [s.phones for s in syllabify(phones)]
+
+
+def test_result_groups_expose_input_phones():
+    r = check_syllabification([['ɑ', 'p'], ['r', 'ɪ', 'l']])
+    assert r.current_groups == [s.phones for s in r.current]
+    assert r.suggested_groups == [s.phones for s in r.suggested]
+    assert r.suggested_groups == resyllabify_phones(['ɑ', 'p', 'r', 'ɪ', 'l'])
 
 
 def test_phone_object():

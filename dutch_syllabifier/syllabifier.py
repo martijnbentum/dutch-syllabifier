@@ -5,10 +5,12 @@ from .syllables import Syllable
 
 def syllabify(phones):
     '''Suggest Dutch syllabification.
-    phones                  list of IPA phone symbols
+    phones                  list of phones (IPA strings or objects with .label)
 
     Returns a list of Syllable objects, split with the Maximal Onset Principle.
-    Raises ValueError on unknown phones or when there is no nucleus.
+    This is the single source of the boundary logic; resyllabify_phones derives
+    its groups from this output. Raises ValueError on unknown phones or when
+    there is no nucleus.
     '''
     phones = list(phones)
     labels = phones_to_label(phones)
@@ -17,13 +19,24 @@ def syllabify(phones):
     if not nuclei:
         raise ValueError('phone sequence has no vowel nucleus')
 
-    boundaries = []
-    for left, right in zip(nuclei, nuclei[1:]):
-        boundaries.append(_maximal_onset_split(labels, left, right))
-
+    boundaries = [_maximal_onset_split(labels, left, right)
+        for left, right in zip(nuclei, nuclei[1:])]
     starts = [0] + boundaries
     ends = boundaries + [len(phones)]
     return [Syllable(phones[s:e]) for s, e in zip(starts, ends)]
+
+
+def resyllabify_phones(phones):
+    '''Regroup phones into syllables by the Maximal Onset Principle.
+    phones                  flat list of phones (IPA strings or objects with a
+                            .label attribute)
+
+    Returns a list of lists holding the SAME phone objects, regrouped at the
+    suggested boundaries -- so caller objects (e.g. phraser phones) keep their
+    identity. Derived from syllabify(), so the two always agree.
+    Raises ValueError on unknown phones or when there is no nucleus.
+    '''
+    return [syllable.phones for syllable in syllabify(phones)]
 
 
 def is_legal_syllable(phones, strict_coda=False):
@@ -94,14 +107,15 @@ class Result:
 
     ok                      True if the check passed
     reason                  human readable explanation
-    suggested               suggested correction, if any
-    current                 the syllabification as given, if any
-    input                   the original objects passed in, if any
+    current                 given segmentation as repo Syllable objects
+    suggested               maximal-onset segmentation as repo Syllable objects
+    input                   the original objects passed in, exactly as given
 
-    suggested and current are lists of Syllable objects; current is normalised,
-    so use input to get back the exact objects the caller passed. repr() stays
-    on one line and omits the segmentation; str() shows current and suggested,
-    aligned in a column.
+    current and suggested are symmetric lists of repo Syllable objects, each
+    wrapping the caller's own phone objects; current_groups / suggested_groups
+    expose those phones directly (ready to apply to phraser objects). repr()
+    stays on one line and omits the segmentation; str() shows current and
+    suggested, aligned in a column.
     '''
 
     def __init__(self, ok, reason='', suggested=None, current=None,
@@ -132,6 +146,23 @@ class Result:
     @staticmethod
     def _segmentation(syllables):
         return ' . '.join(s.label for s in syllables)
+
+    @property
+    def current_groups(self):
+        '''Given segmentation as lists of the input phone objects, or None.
+        Each group is current[i].phones -- the caller's own phones.'''
+        if self.current is None:
+            return None
+        return [s.phones for s in self.current]
+
+    @property
+    def suggested_groups(self):
+        '''Suggested segmentation as lists of the input phone objects, or None.
+        Each group is suggested[i].phones -- the caller's own phones regrouped
+        at the new boundaries, ready to apply to phraser objects.'''
+        if self.suggested is None:
+            return None
+        return [s.phones for s in self.suggested]
 
 
 def _maximal_onset_split(labels, left, right):

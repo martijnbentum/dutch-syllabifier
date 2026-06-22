@@ -2,6 +2,7 @@ from .syllabifier import (
     Result,
     check_syllabification,
     is_legal_syllable,
+    resyllabify_phones,
     syllabify,
 )
 from .syllabify_phraser import (
@@ -29,5 +30,6 @@ __all__ = [
     'is_valid_word',
     'phone_to_label',
     'phones_to_label',
+    'resyllabify_phones',
     'syllabify',
 ]
