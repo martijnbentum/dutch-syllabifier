@@ -1,47 +1,6 @@
 from . import data
-from .phones import labels_of
+from .phones import phones_to_label
 from .syllables import Syllable
-
-
-class Result:
-    '''Outcome of a legality or syllabification check.
-
-    ok                      True if the check passed
-    reason                  human readable explanation
-    suggested               suggested correction, if any
-    '''
-
-    def __init__(self, ok, reason='', suggested=None):
-        self.ok = ok
-        self.reason = reason
-        self.suggested = suggested
-
-    def __bool__(self):
-        return self.ok
-
-    def __repr__(self):
-        return f'Result(ok={self.ok}, reason={self.reason!r})'
-
-
-def _check_known(labels):
-    '''Raise ValueError if any label is not a known Dutch phone.
-    labels                  list of IPA labels
-    '''
-    for lab in labels:
-        if not data.is_known(lab):
-            raise ValueError(f'unknown phone symbol: {lab!r}')
-
-
-def _nucleus_indices(labels):
-    '''Return the indices of nucleus (vowel or diphthong) phones.'''
-    return [i for i, lab in enumerate(labels) if data.is_nucleus(lab)]
-
-
-def _as_phone_list(syllable):
-    '''Return the phone list of a Syllable object or pass through a list.'''
-    if hasattr(syllable, 'phones'):
-        return syllable.phones
-    return syllable
 
 
 def syllabify(phones):
@@ -52,7 +11,7 @@ def syllabify(phones):
     Raises ValueError on unknown phones or when there is no nucleus.
     '''
     phones = list(phones)
-    labels = labels_of(phones)
+    labels = phones_to_label(phones)
     _check_known(labels)
     nuclei = _nucleus_indices(labels)
     if not nuclei:
@@ -69,30 +28,15 @@ def syllabify(phones):
     return [Syllable(phones[s:e]) for s, e in zip(starts, ends)]
 
 
-def _maximal_onset_split(labels, cluster):
-    '''Return the index where the next syllable's onset begins.
-    labels                  full list of IPA labels
-    cluster                 list of indices of the intervocalic consonants
-
-    The largest legal onset is taken from the right of the cluster; the rest
-    becomes the coda of the preceding syllable.
-    '''
-    for size in range(len(cluster), -1, -1):
-        start = len(cluster) - size
-        onset = [labels[i] for i in cluster[start:]]
-        if data.is_legal_onset(onset):
-            return cluster[start] if size else cluster[-1] + 1
-    return cluster[-1] + 1
-
-
 def is_legal_syllable(phones):
     '''Judge whether one syllable is phonotactically legal in Dutch.
-    phones                  list of IPA phone symbols for a single syllable
+    phones                  a single syllable: a Syllable object or a list of
+                            IPA phone symbols
 
     Returns a Result. Coda checking is conservative and partial.
     Raises ValueError on unknown phones.
     '''
-    labels = labels_of(_as_phone_list(phones))
+    labels = phones_to_label(_as_phone_list(phones))
     _check_known(labels)
     nuclei = _nucleus_indices(labels)
     if len(nuclei) == 0:
@@ -127,10 +71,67 @@ def check_syllabification(syllables):
     flat = [phone for syllable in given for phone in syllable]
     suggested = syllabify(flat)
 
-    given_labels = [labels_of(s) for s in given]
-    suggested_labels = [labels_of(s.phones) for s in suggested]
+    given_labels = [phones_to_label(s) for s in given]
+    suggested_labels = [phones_to_label(s.phones) for s in suggested]
     if given_labels == suggested_labels:
         return Result(True, 'correct syllable boundaries')
     pretty = ' . '.join(s.label for s in suggested)
     return Result(False, f'boundaries differ from maximal onset: {pretty}',
         suggested=suggested)
+
+
+class Result:
+    '''Outcome of a legality or syllabification check.
+
+    ok                      True if the check passed
+    reason                  human readable explanation
+    suggested               suggested correction, if any
+    '''
+
+    def __init__(self, ok, reason='', suggested=None):
+        self.ok = ok
+        self.reason = reason
+        self.suggested = suggested
+
+    def __bool__(self):
+        return self.ok
+
+    def __repr__(self):
+        return f'Result(ok={self.ok}, reason={self.reason!r})'
+
+
+def _maximal_onset_split(labels, cluster):
+    '''Return the index where the next syllable's onset begins.
+    labels                  full list of IPA labels
+    cluster                 list of indices of the intervocalic consonants
+
+    The largest legal onset is taken from the right of the cluster; the rest
+    becomes the coda of the preceding syllable.
+    '''
+    for size in range(len(cluster), -1, -1):
+        start = len(cluster) - size
+        onset = [labels[i] for i in cluster[start:]]
+        if data.is_legal_onset(onset):
+            return cluster[start] if size else cluster[-1] + 1
+    return cluster[-1] + 1
+
+
+def _check_known(labels):
+    '''Raise ValueError if any label is not a known Dutch phone.
+    labels                  list of IPA labels
+    '''
+    for lab in labels:
+        if not data.is_known(lab):
+            raise ValueError(f'unknown phone symbol: {lab!r}')
+
+
+def _nucleus_indices(labels):
+    '''Return the indices of nucleus (vowel or diphthong) phones.'''
+    return [i for i, lab in enumerate(labels) if data.is_nucleus(lab)]
+
+
+def _as_phone_list(syllable):
+    '''Return the phone list of a Syllable object or pass through a list.'''
+    if hasattr(syllable, 'phones'):
+        return syllable.phones
+    return syllable

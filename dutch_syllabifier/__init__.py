@@ -1,10 +1,10 @@
-from .core import (
+from .syllabifier import (
     Result,
     check_syllabification,
     is_legal_syllable,
     syllabify,
 )
-from .phones import Phone, label_of, labels_of
+from .phones import Phone, phone_to_label, phones_to_label
 from .syllables import Syllable
 
 __all__ = [
@@ -13,7 +13,7 @@ __all__ = [
     'Syllable',
     'check_syllabification',
     'is_legal_syllable',
-    'label_of',
-    'labels_of',
+    'phone_to_label',
+    'phones_to_label',
     'syllabify',
 ]

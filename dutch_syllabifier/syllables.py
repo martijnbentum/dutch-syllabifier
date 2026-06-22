@@ -1,4 +1,4 @@
-from .phones import labels_of
+from .phones import phones_to_label
 
 
 class Syllable:
@@ -19,12 +19,12 @@ class Syllable:
     @property
     def label(self):
         '''Return the phones as a space-separated IPA string.'''
-        return ' '.join(labels_of(self.phones))
+        return ' '.join(phones_to_label(self.phones))
 
     def __repr__(self):
-        return f'Syllable({labels_of(self.phones)!r})'
+        return f'Syllable({phones_to_label(self.phones)!r})'
 
     def __eq__(self, other):
         if not hasattr(other, 'phones'):
             return NotImplemented
-        return labels_of(self.phones) == labels_of(other.phones)
+        return phones_to_label(self.phones) == phones_to_label(other.phones)
