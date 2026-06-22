@@ -4,6 +4,14 @@ from .syllabifier import (
     is_legal_syllable,
     syllabify,
 )
+from .syllabify_phraser import (
+    analyse_phrase,
+    analyse_syllable,
+    analyse_word,
+    is_valid_phrase,
+    is_valid_syllable,
+    is_valid_word,
+)
 from .phones import Phone, phone_to_label, phones_to_label
 from .syllables import Syllable
 
@@ -11,8 +19,14 @@ __all__ = [
     'Phone',
     'Result',
     'Syllable',
+    'analyse_phrase',
+    'analyse_syllable',
+    'analyse_word',
     'check_syllabification',
     'is_legal_syllable',
+    'is_valid_phrase',
+    'is_valid_syllable',
+    'is_valid_word',
     'phone_to_label',
     'phones_to_label',
     'syllabify',
