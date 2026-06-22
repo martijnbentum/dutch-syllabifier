@@ -78,14 +78,16 @@ def check_syllabification(syllables):
 
     flat = [phone for syllable in given for phone in syllable]
     suggested = syllabify(flat)
+    current = [Syllable(s) for s in given]
 
     given_labels = [phones_to_label(s) for s in given]
     suggested_labels = [phones_to_label(s.phones) for s in suggested]
     if given_labels == suggested_labels:
-        return Result(True, 'correct syllable boundaries')
+        return Result(True, 'correct syllable boundaries',
+            suggested=suggested, current=current, input=list(syllables))
     pretty = ' . '.join(s.label for s in suggested)
     return Result(False, f'boundaries differ from maximal onset: {pretty}',
-        suggested=suggested)
+        suggested=suggested, current=current, input=list(syllables))
 
 
 class Result:
@@ -94,18 +96,43 @@ class Result:
     ok                      True if the check passed
     reason                  human readable explanation
     suggested               suggested correction, if any
+    current                 the syllabification as given, if any
+    input                   the original objects passed in, if any
+
+    suggested and current are lists of Syllable objects; current is normalised,
+    so use input to get back the exact objects the caller passed. repr() stays
+    on one line and omits the segmentation; str() shows current and suggested,
+    aligned in a column.
     '''
 
-    def __init__(self, ok, reason='', suggested=None):
+    def __init__(self, ok, reason='', suggested=None, current=None,
+            input=None):
         self.ok = ok
         self.reason = reason
         self.suggested = suggested
+        self.current = current
+        self.input = input
 
     def __bool__(self):
         return self.ok
 
     def __repr__(self):
         return f'Result(ok={self.ok}, reason={self.reason!r})'
+
+    def __str__(self):
+        width = len('suggested')
+        lines = [repr(self)]
+        if self.current is not None:
+            lines.append(f'  {"current":>{width}}: '
+                f'{self._segmentation(self.current)}')
+        if self.suggested is not None:
+            lines.append(f'  {"suggested":>{width}}: '
+                f'{self._segmentation(self.suggested)}')
+        return '\n'.join(lines)
+
+    @staticmethod
+    def _segmentation(syllables):
+        return ' . '.join(s.label for s in syllables)
 
 
 def _maximal_onset_split(labels, left, right):
