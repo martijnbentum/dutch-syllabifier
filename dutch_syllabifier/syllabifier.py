@@ -61,12 +61,15 @@ def is_legal_syllable(phones, strict_coda=False):
 
 def check_syllabification(syllables):
     '''Judge whether a sequence of syllables has correct boundaries.
-    syllables               list of Syllable objects or lists of phones
+    syllables               non-empty list of Syllable objects or lists of
+                            phones
 
     Returns a Result. When the boundaries differ from the Maximal Onset
     Principle, ``result.suggested`` holds the suggested syllabification.
-    Raises ValueError on unknown phones.
+    Raises ValueError on unknown phones or empty input.
     '''
+    if not syllables:
+        raise ValueError('no syllables to check')
     given = [list(_as_phone_list(s)) for s in syllables]
     for syllable in given:
         legal = is_legal_syllable(syllable)
