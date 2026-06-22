@@ -37,7 +37,6 @@ def phone_to_label(phone):
     phone                   IPA string or an object with a ``.label`` attribute
     '''
     if isinstance(phone, str):
-        warn_if_unknown_phone(phone)
         return phone
     if hasattr(phone, 'label'):
         return phone.label

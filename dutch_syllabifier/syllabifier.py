@@ -19,9 +19,7 @@ def syllabify(phones):
 
     boundaries = []
     for left, right in zip(nuclei, nuclei[1:]):
-        cluster = list(range(left + 1, right))
-        split = _maximal_onset_split(labels, cluster)
-        boundaries.append(split)
+        boundaries.append(_maximal_onset_split(labels, left, right))
 
     starts = [0] + boundaries
     ends = boundaries + [len(phones)]
@@ -100,20 +98,21 @@ class Result:
         return f'Result(ok={self.ok}, reason={self.reason!r})'
 
 
-def _maximal_onset_split(labels, cluster):
-    '''Return the index where the next syllable's onset begins.
+def _maximal_onset_split(labels, left, right):
+    '''Return the index where the syllable at nucleus `right` begins.
     labels                  full list of IPA labels
-    cluster                 list of indices of the intervocalic consonants
+    left, right             indices of two consecutive nuclei
 
-    The largest legal onset is taken from the right of the cluster; the rest
-    becomes the coda of the preceding syllable.
+    The largest legal onset (a suffix of the consonants between the nuclei) is
+    assigned to the second syllable; the rest becomes the coda of the first.
+    When no consonant suffix is a legal onset (including no consonants at all),
+    the boundary sits just before the second nucleus.
     '''
-    for size in range(len(cluster), -1, -1):
-        start = len(cluster) - size
-        onset = [labels[i] for i in cluster[start:]]
+    for size in range(right - left - 1, 0, -1):
+        onset = labels[right - size:right]
         if data.is_legal_onset(onset):
-            return cluster[start] if size else cluster[-1] + 1
-    return cluster[-1] + 1
+            return right - size
+    return right
 
 
 def _check_known(labels):
