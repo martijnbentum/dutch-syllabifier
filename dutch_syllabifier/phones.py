@@ -19,14 +19,23 @@ class Phone:
         '''Create a phone.
         label                   IPA symbol, e.g. 'm' or 'ɛi'
         '''
-        self.label = label
+        self._label = label
         warn_if_unknown_phone(label)
+
+    @property
+    def label(self):
+        '''The IPA symbol (read-only so the hash stays stable).'''
+        return self._label
 
     def __repr__(self):
         return f'Phone({self.label!r})'
 
     def __eq__(self, other):
-        return phone_to_label(self) == phone_to_label(other)
+        if isinstance(other, str):
+            return self.label == other
+        if isinstance(other, Phone):
+            return self.label == other.label
+        return NotImplemented
 
     def __hash__(self):
         return hash(self.label)
