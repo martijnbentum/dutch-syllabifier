@@ -1,0 +1,15 @@
+AGENTS.md
+.venv/
+.env
+__pycache__/
+*.pyc
+*.pyo
+*.swp
+*.swo
+.build/
+.pytest_cache/
+dutch_syllabifier.egg-info/
+dutch_syllabifier.egg-info
+*.egg-info/
+uv.lock
+scripts/

@@ -1,0 +1,35 @@
+[build-system]
+requires = ['setuptools>=68', 'wheel']
+build-backend = 'setuptools.build_meta'
+
+[project]
+name = 'dutch-syllabifier'
+version = '0.1.0'
+description = 'Dutch phonological syllabification of IPA phone sequences'
+readme = 'README.md'
+requires-python = '>=3.10'
+license = {file = 'LICENSE'}
+dependencies = []
+authors = [
+    {name = 'Martijn Bentum'},
+]
+classifiers = [
+    'License :: OSI Approved :: MIT License',
+    'Programming Language :: Python :: 3',
+    'Programming Language :: Python :: 3 :: Only',
+]
+
+[project.urls]
+Homepage = 'https://github.com/martijnbentum/dutch-syllabifier'
+Repository = 'https://github.com/martijnbentum/dutch-syllabifier'
+
+[tool.setuptools.packages.find]
+include = ['dutch_syllabifier*']
+
+[tool.setuptools.package-data]
+dutch_syllabifier = ['data/*.json', 'data/*.md']
+
+[dependency-groups]
+dev = [
+    'pytest>=9.0.3',
+]
