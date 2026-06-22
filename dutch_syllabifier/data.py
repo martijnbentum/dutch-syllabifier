@@ -16,25 +16,36 @@ def _as_tuples(sequences):
     return set(tuple(seq) for seq in sequences)
 
 
+# phone inventory, by category
 VOWELS = set(_load_json('vowels.json'))
 DIPHTHONGS = set(_load_json('diphthongs.json'))
+CONSONANTS = set(_load_json('consonants.json'))
+
+# nuclei is a syllable role; known phones is the category union
 NUCLEI = VOWELS | DIPHTHONGS
+KNOWN_PHONES = VOWELS | DIPHTHONGS | CONSONANTS
 
 LEGAL_ONSETS = _as_tuples(_load_json('legal_onsets.json'))
 ILLEGAL_ONSETS = _as_tuples(_load_json('illegal_onsets.json'))
 LEGAL_CODAS = _as_tuples(_load_json('legal_codas.json'))
 
 
-def _collect_consonants():
-    '''Return the set of consonant labels seen in onset and coda data.'''
-    consonants = set()
-    for cluster in LEGAL_ONSETS | LEGAL_CODAS | ILLEGAL_ONSETS:
-        consonants.update(cluster)
-    return consonants - NUCLEI
+def _validate_clusters():
+    '''Raise ValueError if any onset/coda cluster uses an undeclared consonant.
+
+    Keeps the cluster data files consistent with consonants.json so the phone
+    inventory cannot silently drift.
+    '''
+    for name, clusters in (('legal_onsets', LEGAL_ONSETS),
+            ('illegal_onsets', ILLEGAL_ONSETS),
+            ('legal_codas', LEGAL_CODAS)):
+        unknown = set().union(*clusters) - CONSONANTS if clusters else set()
+        if unknown:
+            raise ValueError(
+                f'{name}.json uses undeclared consonants: {sorted(unknown)}')
 
 
-CONSONANTS = _collect_consonants()
-KNOWN_PHONES = NUCLEI | CONSONANTS
+_validate_clusters()
 
 
 def is_nucleus(label):

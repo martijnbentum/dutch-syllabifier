@@ -37,6 +37,9 @@ import dutch_syllabifier
   e.g. `ɛi`, `œy`, `ɑu`.
 * `/sx/` as in *schild* is two phones: `['s', 'x']`.
 * `/st/` is both a legal onset (*straat*) and part of legal codas (*herfst*).
+* Post-vocalic glides are consonants, not vowels: use `/j/` (*fraai*
+  `['f', 'r', 'aː', 'j']`) and `/w/` (*nieuw* `['n', 'i', 'w']`). This keeps a
+  glide from forming a spurious second nucleus.
 
 A phone may be an IPA string or any object with a `.label` attribute. A syllable
 may be a `Syllable` object or any object with a `.phones` attribute.
@@ -129,6 +132,7 @@ Machine-readable phonotactic data ships inside the package:
 dutch_syllabifier/data/
   vowels.json
   diphthongs.json
+  consonants.json
   legal_onsets.json
   illegal_onsets.json
   legal_codas.json
@@ -141,7 +145,9 @@ dutch_syllabifier/data/
 * Ignores spelling and morphology.
 * Uses strict Dutch phonotactics.
 * **Coda validation is conservative and partial**: codas are checked against a
-  curated list that is not exhaustive.
+  curated list that is not exhaustive. It is non-fatal by default —
+  `is_legal_syllable` does not reject on coda alone (pass `strict_coda=True` to
+  enforce it), and `check_syllabification` judges boundaries from onsets only.
 * Unknown phone symbols raise a clear `ValueError`.
 
 ## Future refinements

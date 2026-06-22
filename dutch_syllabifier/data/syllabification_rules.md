@@ -18,6 +18,20 @@ morphology.
 * Vowels (`vowels.json`) and diphthongs (`diphthongs.json`) are nuclei.
 * A legal syllable has exactly one nucleus.
 
+## Post-vocalic glides
+
+Transcribe an offglide as a consonant, not as a second vowel, so that it does
+not form a spurious extra nucleus:
+
+* `/j/` after a vowel, as in *aai*, *ooi*, *oei*:
+  *fraai* `['f', 'r', 'aː', 'j']`, *mooi* `['m', 'oː', 'j']`.
+* `/w/` after a vowel, as in *eeuw*, *ieuw*, *uw*:
+  *nieuw* `['n', 'i', 'w']`, *ruw* `['r', 'y', 'w']`.
+
+`/j/` and `/w/` are legal codas. The vowel symbols `i`, `u`, etc. are reserved
+for nuclei. The three true diphthongs `ɛi`, `œy`, `ɑu` remain single nucleus
+phones.
+
 ## Maximal Onset Principle
 
 Between two vowel nuclei, assign the largest possible consonant cluster to the
@@ -51,6 +65,13 @@ as legal when it is empty or present in `legal_codas.json`. The list covers the
 common Dutch codas and selected complex clusters (e.g. `/rfst/` in *herfst*),
 but it is not exhaustive. Voiced obstruents are excluded from codas because of
 Dutch final devoicing.
+
+Because the list is incomplete, coda checking is **non-fatal by default**:
+`is_legal_syllable` does not reject a syllable on coda grounds alone (it returns
+``ok`` with a note in the reason), and `check_syllabification` judges syllable
+boundaries from nucleus count and onset legality only — never from coda
+membership. Pass `strict_coda=True` to `is_legal_syllable` to make an unlisted
+coda fail.
 
 ## Out of scope (version 1)
 

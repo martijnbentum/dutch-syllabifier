@@ -26,13 +26,17 @@ def syllabify(phones):
     return [Syllable(phones[s:e]) for s, e in zip(starts, ends)]
 
 
-def is_legal_syllable(phones):
+def is_legal_syllable(phones, strict_coda=False):
     '''Judge whether one syllable is phonotactically legal in Dutch.
     phones                  a single syllable: a Syllable object or a list of
                             IPA phone symbols
+    strict_coda             if True, a coda not in the conservative list makes
+                            the result False; otherwise (default) an unlisted
+                            coda is allowed but noted in the reason
 
-    Returns a Result. Coda checking is conservative and partial.
-    Raises ValueError on unknown phones.
+    Coda validation is conservative and partial, so by default it never
+    rejects a syllable on coda grounds alone. Onset and nucleus checks are
+    reliable. Raises ValueError on unknown phones.
     '''
     labels = phones_to_label(_as_phone_list(phones))
     _check_known(labels)
@@ -48,7 +52,10 @@ def is_legal_syllable(phones):
     if not data.is_legal_onset(onset):
         return Result(False, f'illegal onset: {" ".join(onset)}')
     if not data.is_legal_coda(coda):
-        return Result(False, f'illegal coda (conservative): {" ".join(coda)}')
+        reason = f'coda not in conservative list: {" ".join(coda)}'
+        if strict_coda:
+            return Result(False, reason)
+        return Result(True, reason)
     return Result(True, 'legal syllable')
 
 
