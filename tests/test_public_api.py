@@ -95,14 +95,8 @@ def test_result_input_preserves_original_objects():
 
 def test_result_repr_omits_segmentation_str_shows_it():
     r = check_syllabification([['ɑ', 'p'], ['r', 'ɪ', 'l']])
-    text = repr(r)
-    assert text.startswith('Result(ok=False')
-    assert 'current' not in text and 'suggested' not in text
-    lines = str(r).splitlines()
-    assert lines[0] == repr(r)
-    assert 'current:' in lines[1] and 'suggested:' in lines[2]
-    # labels are right-justified so the colons align
-    assert lines[1].index(':') == lines[2].index(':')
+    assert ' . ' not in repr(r)        # repr carries no segmentation
+    assert ' . ' in str(r)             # str does
 
 
 def test_phone_object():

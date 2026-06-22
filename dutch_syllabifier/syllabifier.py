@@ -85,8 +85,7 @@ def check_syllabification(syllables):
     if given_labels == suggested_labels:
         return Result(True, 'correct syllable boundaries',
             suggested=suggested, current=current, input=list(syllables))
-    pretty = ' . '.join(s.label for s in suggested)
-    return Result(False, f'boundaries differ from maximal onset: {pretty}',
+    return Result(False, 'boundaries differ from maximal onset',
         suggested=suggested, current=current, input=list(syllables))
 
 
