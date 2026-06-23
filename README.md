@@ -205,6 +205,17 @@ Word and phrase checks use the segment's `.syllables`, so a phrase is validated
 as one sequence — boundaries that span **word boundaries** are checked too. Use
 the phrase function rather than looping over words.
 
+By default a phrase is treated as connected speech, so a consonant may
+resyllabify across a word boundary (e.g. *het ei* → `hɛ.tɛi`). To keep each word
+intact, pass `cross_word_boundaries=False`; then every word is syllabified on
+its own and no boundary moves across words. This path reads the phrase's
+`.words` (each a word with `.syllables`) instead of the flat `.syllables`.
+
+```python
+analyse_phrase(phrase)                              # hɛ.tɛi  (crosses boundary)
+analyse_phrase(phrase, cross_word_boundaries=False) # hɛt.ɛi  (word-respecting)
+```
+
 Both tiers are **total**: input the engine cannot check (an unknown phone label
 or an empty segment) never raises here. The bool tier returns `False`; the
 `analyse_*` tier returns a falsy `Result` with `.uncheckable` set to `True`, so
