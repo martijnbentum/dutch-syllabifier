@@ -7,8 +7,10 @@ Dutch phonotactics. It ignores spelling and morphology.
 It can:
 
 1. suggest a syllabification for a Dutch IPA phone sequence;
-2. judge whether a single syllable is phonotactically legal in Dutch;
-3. judge whether a sequence of syllables has correct syllable boundaries;
+2. judge whether a single syllable is phonotactically legal, returning a
+   `Legality` verdict with the reason;
+3. judge whether a sequence of syllables has correct syllable boundaries
+   (optionally respecting word boundaries for a phrase);
 4. expose syllable phones through a `.phones` attribute.
 
 ## Install

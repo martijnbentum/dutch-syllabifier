@@ -34,6 +34,14 @@ def test_valid_syllable():
     assert not is_valid_syllable(FakeSyllable(['l', 'p', 'ə']))   # /lp/ onset
 
 
+def test_analyse_syllable_reports_legality_reason():
+    # a single syllable has no boundaries to judge; reason is its legality
+    assert analyse_syllable(FakeSyllable(['s', 't', 'r', 'aː', 't'])).reason \
+        == 'legal syllable'
+    assert analyse_syllable(FakeSyllable(['l', 'p', 'ə'])).reason \
+        == 'illegal onset: l p'
+
+
 def test_word_boundaries():
     wrong = FakeSegment([['ɑ', 'p'], ['r', 'ɪ', 'l']])
     assert not is_valid_word(wrong)

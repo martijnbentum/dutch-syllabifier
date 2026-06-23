@@ -228,6 +228,10 @@ class Result:
             return self.error
         if self._bad_syllable is not None:
             return self._bad_syllable.legality.reason
+        # one syllable has no boundaries to judge; report its legality instead
+        if (self.current is not None and len(self.current) == 1
+                and self.current[0].legality is not None):
+            return self.current[0].legality.reason
         return ('correct syllable boundaries' if self.boundaries_match
             else 'boundaries differ from maximal onset')
 

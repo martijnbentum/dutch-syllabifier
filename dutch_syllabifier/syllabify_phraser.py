@@ -12,7 +12,7 @@ or plain lists.
 
 Two tiers per segment:
   - ``is_valid_*``   returns a bool
-  - ``analyse_*``    returns a Result (.ok, .reason, .suggested)
+  - ``analyse_*``    returns a Result (.ok, .reason, .suggested, .uncheckable)
 
 Both tiers are total: input the engine cannot check (an unknown phone label or
 an empty segment) never raises here. The bool tier reports it as False; the

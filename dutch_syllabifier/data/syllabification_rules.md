@@ -66,12 +66,12 @@ common Dutch codas and selected complex clusters (e.g. `/rfst/` in *herfst*),
 but it is not exhaustive. Voiced obstruents are excluded from codas because of
 Dutch final devoicing.
 
-Because the list is incomplete, coda checking is **non-fatal by default**:
-`is_legal_syllable` does not reject a syllable on coda grounds alone (it returns
-``ok`` with a note in the reason), and `check_syllabification` judges syllable
-boundaries from nucleus count and onset legality only — never from coda
-membership. Pass `strict_coda=True` to `is_legal_syllable` to make an unlisted
-coda fail.
+Because the list is incomplete, coda checking is **non-fatal**: an unlisted coda
+is always tolerated. `is_legal_syllable` (which returns a plain `bool`) never
+rejects a syllable on coda grounds alone, and `check_syllabification` judges
+syllable boundaries from nucleus count and onset legality only — never from coda
+membership. There is intentionally no strict-coda mode; callers that need to
+detect an unlisted coda can inspect `Legality.judge(syllable).unlisted_coda`.
 
 ## Out of scope (version 1)
 
