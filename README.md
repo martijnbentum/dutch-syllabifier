@@ -88,15 +88,51 @@ s.label
 
 ### Check a single syllable
 
+`is_legal_syllable` returns a plain `bool`:
+
 ```python
 from dutch_syllabifier import is_legal_syllable
 
-is_legal_syllable(['s', 't', 'r', 'aː', 't']).ok
+is_legal_syllable(['s', 't', 'r', 'aː', 't'])
 # True
 
-is_legal_syllable(['l', 'p', 'ə']).ok   # /lp/ is not a legal onset
+is_legal_syllable(['l', 'p', 'ə'])   # /lp/ is not a legal onset
 # False
 ```
+
+For the reason behind a judgment, use `Legality` (see below).
+
+### Legality: the per-syllable verdict
+
+`Legality.judge` returns a `Legality` describing *why* a syllable passes or
+fails. It exposes one boolean flag per finding, so you branch on a stable
+attribute instead of parsing a message:
+
+```python
+from dutch_syllabifier import Legality
+
+v = Legality.judge(['l', 'p', 'ə'])
+v.ok                # False  -- derived from the flags
+v.illegal_onset     # True
+v.reason            # 'illegal onset: l p'  (derived from the finding)
+str(v)              # 'illegal onset: l p'
+
+Legality.judge(['s', 't', 'r', 'aː', 't']).ok   # True
+Legality.legal().ok                              # True (a passing verdict)
+```
+
+The findings are:
+
+| flag              | meaning                                            | clears `ok`? |
+| ----------------- | -------------------------------------------------- | ------------ |
+| `no_nucleus`      | syllable has no vowel nucleus                      | yes          |
+| `multiple_nuclei` | syllable has more than one nucleus                 | yes          |
+| `illegal_onset`   | onset is not a legal Dutch onset cluster           | yes          |
+| `unlisted_coda`   | coda is not in the conservative list (tolerated)   | no           |
+
+`unlisted_coda` is **noted but tolerated**: it is set, yet `ok` stays `True`,
+because coda validation is conservative (see Scope and limitations).
+`offending_phones` holds the onset or coda that triggered the finding.
 
 ### Check syllable boundaries
 
@@ -116,12 +152,24 @@ check_syllabification([['h', 'ɛ', 'r', 'f', 's', 't']]).ok
 # True   -> Dutch allows complex codas such as /rfst/
 ```
 
-The result object exposes:
+The result object derives `ok` and `reason` from its data and exposes:
 
 ```python
-result.ok          # bool
-result.reason      # explanation
-result.suggested   # suggested syllabification when boundaries are wrong
+result.ok          # bool: all syllables legal and boundaries follow maximal onset
+result.reason      # explanation (points at the first illegal syllable, else boundaries)
+result.current     # the given segmentation as Syllable objects
+result.suggested   # the maximal-onset segmentation as Syllable objects
+result.uncheckable # True only for input that could not be analysed at all
+```
+
+Each syllable in `result.current` carries its own `.legality` verdict, so you
+can inspect a specific syllable:
+
+```python
+r = check_syllabification([['ɑ'], ['l', 'p', 'ə']])
+r.ok                            # False
+r.current[1].legality.illegal_onset   # True
+r.suggested                     # [Syllable(['ɑ', 'l']), Syllable(['p', 'ə'])]
 ```
 
 ## Validating phraser segments
@@ -136,7 +184,7 @@ There are two tiers per segment:
 
 * `is_valid_syllable` / `is_valid_word` / `is_valid_phrase` return a `bool`.
 * `analyse_syllable` / `analyse_word` / `analyse_phrase` return a `Result`
-  (`.ok`, `.reason`, `.suggested`).
+  (`.ok`, `.reason`, `.suggested`, `.uncheckable`).
 
 ```python
 from dutch_syllabifier import (is_valid_word, is_valid_phrase,
@@ -159,12 +207,15 @@ the phrase function rather than looping over words.
 
 Both tiers are **total**: input the engine cannot check (an unknown phone label
 or an empty segment) never raises here. The bool tier returns `False`; the
-`analyse_*` tier returns a falsy `Result` whose `reason` starts with
-`could not analyse:`, so an *uncheckable* segment stays distinguishable from an
-*incorrect* one.
+`analyse_*` tier returns a falsy `Result` with `.uncheckable` set to `True`, so
+an *uncheckable* segment stays distinguishable from an *incorrect* one (whose
+`.uncheckable` is `False`). The `.reason` still explains it for humans.
 
 ```python
-analyse_word(empty_word).reason
+result = analyse_word(empty_word)
+result.uncheckable
+# True
+result.reason
 # 'could not analyse: no syllables to check'
 ```
 
@@ -189,9 +240,10 @@ dutch_syllabifier/data/
 * Ignores spelling and morphology.
 * Uses strict Dutch phonotactics.
 * **Coda validation is conservative and partial**: codas are checked against a
-  curated list that is not exhaustive. It is non-fatal by default —
-  `is_legal_syllable` does not reject on coda alone (pass `strict_coda=True` to
-  enforce it), and `check_syllabification` judges boundaries from onsets only.
+  curated list that is not exhaustive. It is non-fatal — an unlisted coda sets
+  `Legality.unlisted_coda` but does not clear `ok`, so `is_legal_syllable` never
+  rejects on coda alone, and `check_syllabification` judges boundaries from
+  onsets only.
 * Unknown phone symbols raise a clear `ValueError`.
 
 ## Future refinements
