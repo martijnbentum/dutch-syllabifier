@@ -14,10 +14,11 @@ Two tiers per segment:
 
 Both tiers are total: input the engine cannot check (an unknown phone label or
 an empty segment) never raises here. The bool tier reports it as False; the
-analyse tier returns a falsy Result whose reason starts with 'could not
-analyse:' so 'uncheckable' stays distinguishable from 'incorrect'.
+analyse tier returns a falsy Result with .uncheckable True (and a reason that
+starts with 'could not analyse:') so 'uncheckable' stays distinguishable from
+'incorrect'.
 '''
-from .syllabifier import Result, check_syllabification, is_legal_syllable
+from .syllabifier import Result, check_syllabification
 
 
 def analyse_syllable(syllable):
@@ -25,9 +26,9 @@ def analyse_syllable(syllable):
     syllable                a phraser Syllable (anything with .phones)
     '''
     try:
-        return is_legal_syllable(syllable)
+        return check_syllabification([syllable])
     except ValueError as e:
-        return Result(False, f'could not analyse: {e}')
+        return Result(error=f'could not analyse: {e}')
 
 
 def analyse_word(word):
@@ -37,7 +38,7 @@ def analyse_word(word):
     try:
         return check_syllabification(word.syllables)
     except ValueError as e:
-        return Result(False, f'could not analyse: {e}')
+        return Result(error=f'could not analyse: {e}')
 
 
 def analyse_phrase(phrase):
@@ -48,7 +49,7 @@ def analyse_phrase(phrase):
     try:
         return check_syllabification(phrase.syllables)
     except ValueError as e:
-        return Result(False, f'could not analyse: {e}')
+        return Result(error=f'could not analyse: {e}')
 
 
 def is_valid_syllable(syllable):

@@ -15,6 +15,7 @@ class Syllable:
         phones                  list of IPA strings or objects with ``.label``
         '''
         self.phones = phones
+        self.legality = None        # set by check_syllabification; None if unjudged
 
     @property
     def label(self):

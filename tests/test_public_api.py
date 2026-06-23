@@ -6,8 +6,8 @@ refactors do not break them.
 '''
 import pytest
 
-from dutch_syllabifier import (Phone, Result, Syllable, check_syllabification,
-    is_legal_syllable, resyllabify_phones, syllabify)
+from dutch_syllabifier import (Legality, Phone, Result, Syllable,
+    check_syllabification, is_legal_syllable, resyllabify_phones, syllabify)
 
 
 def shapes(syllables):
@@ -37,20 +37,20 @@ def test_sx_onset():
 
 
 def test_illegal_onset_clusters():
-    assert not is_legal_syllable(['l', 'p', 'ə']).ok   # /lp/
-    assert not is_legal_syllable(['r', 'm', 'ə']).ok   # /rm/
+    assert not is_legal_syllable(['l', 'p', 'ə'])   # /lp/
+    assert not is_legal_syllable(['r', 'm', 'ə'])   # /rm/
 
 
 def test_complex_coda():
     # herfst -> single syllable with complex coda /rfst/
     assert shapes(syllabify(['h', 'ɛ', 'r', 'f', 's', 't'])) == \
         [['h', 'ɛ', 'r', 'f', 's', 't']]
-    assert is_legal_syllable(['h', 'ɛ', 'r', 'f', 's', 't']).ok
+    assert is_legal_syllable(['h', 'ɛ', 'r', 'f', 's', 't'])
 
 
 def test_diphthongs_are_single_symbols():
     for diphthong in ('ɛi', 'œy', 'ɑu'):
-        assert is_legal_syllable([diphthong]).ok
+        assert is_legal_syllable([diphthong])
         assert shapes(syllabify(['m', diphthong])) == [['m', diphthong]]
 
 
@@ -98,7 +98,8 @@ def test_illegal_syllable_still_reports_correction():
     # the correction must survive the legality failure, not be dropped
     r = check_syllabification([['ɑ'], ['l', 'p', 'ə']])
     assert not r.ok
-    assert 'onset' in r.reason
+    # branch on the structured handle, not a substring of the message
+    assert r.current[1].legality.illegal_onset
     assert shapes(r.suggested) == [['ɑ', 'l'], ['p', 'ə']]
     assert shapes(r.current) == [['ɑ'], ['l', 'p', 'ə']]
 
@@ -161,5 +162,53 @@ def test_syllable_object():
     s = Syllable(['m', 'ɑ'])
     assert s.phones == ['m', 'ɑ']
     assert s.label == 'm ɑ'
+    # a fresh syllable is unjudged until check_syllabification sets it
+    assert s.legality is None
     # accepts a Syllable (or any object with .phones)
-    assert is_legal_syllable(Syllable(['s', 't', 'r', 'aː', 't'])).ok
+    assert is_legal_syllable(Syllable(['s', 't', 'r', 'aː', 't']))
+
+
+def test_legality_findings():
+    # each finding fires on the right input; only one flag set at a time
+    assert Legality.judge(['l', 'p', 'ə']).illegal_onset       # /lp/ onset
+    assert Legality.judge(['p']).no_nucleus                    # no vowel
+    assert Legality.judge(['ɑ', 't', 'ɑ']).multiple_nuclei     # two nuclei
+    assert Legality.judge(['s', 't', 'r', 'aː', 't']).finding is None
+
+
+def test_legality_ok_and_reason_are_derived():
+    legal = Legality.legal()
+    assert legal.ok and legal.finding is None and legal.reason == 'legal syllable'
+    bad = Legality.judge(['l', 'p', 'ə'])
+    assert not bad.ok
+    # reason is derived from the finding name plus the offending phones
+    assert bad.reason == 'illegal onset: l p'
+    assert str(bad) == bad.reason
+    assert 'illegal_onset' in repr(bad)
+
+
+def test_unlisted_coda_is_tolerated():
+    # a coda not in the conservative list is noted but does not clear ok
+    v = Legality.judge(['ɑ', 'l', 'f', 's', 't'])
+    assert v.ok and bool(v)
+    assert v.unlisted_coda
+    assert v.reason == 'unlisted coda: l f s t'
+
+
+def test_legality_attached_to_current_not_suggested():
+    r = check_syllabification([['ɑ'], ['l', 'p', 'ə']])
+    # every current syllable carries its verdict
+    assert all(isinstance(s.legality, Legality) for s in r.current)
+    assert r.current[1].legality.illegal_onset
+    # suggested syllables are unjudged (judging them would be circular)
+    assert all(s.legality is None for s in r.suggested)
+
+
+def test_result_uncheckable_flag():
+    # error= builds a falsy, uncheckable result carrying an explicit reason
+    bad = Result(error='could not analyse: boom')
+    assert bad.uncheckable
+    assert not bad.ok and not bad
+    assert bad.reason == 'could not analyse: boom'
+    # a normal derived result is checkable
+    assert not check_syllabification([['ɑ', 'p'], ['r', 'ɪ', 'l']]).uncheckable

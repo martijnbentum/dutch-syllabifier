@@ -42,10 +42,10 @@ def test_phrase_across_word_boundaries():
 
 
 def test_total_on_bad_input():
-    # unknown phone and empty segment never raise here
+    # unknown phone and empty segment never raise here; the .uncheckable flag
+    # (not a substring of the reason) distinguishes 'uncheckable' from 'wrong'
     assert not is_valid_syllable(FakeSyllable(['Q']))
-    assert analyse_syllable(FakeSyllable(['Q'])).reason.startswith(
-        'could not analyse:')
+    bad = analyse_syllable(FakeSyllable(['Q']))
+    assert not bad.ok and bad.uncheckable
     assert not is_valid_word(FakeSegment([]))
-    assert analyse_phrase(FakeSegment([])).reason.startswith(
-        'could not analyse:')
+    assert analyse_phrase(FakeSegment([])).uncheckable

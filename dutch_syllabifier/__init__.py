@@ -1,4 +1,5 @@
 from .syllabifier import (
+    Legality,
     Result,
     check_syllabification,
     is_legal_syllable,
@@ -17,6 +18,7 @@ from .phones import Phone, phone_to_label, phones_to_label
 from .syllables import Syllable
 
 __all__ = [
+    'Legality',
     'Phone',
     'Result',
     'Syllable',
