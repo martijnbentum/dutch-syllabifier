@@ -93,6 +93,34 @@ def test_result_input_preserves_original_objects():
     assert r.current[0] is not a
 
 
+def test_illegal_syllable_still_reports_correction():
+    # ɑ.lpə is illegal (/lp/ onset) but maximal onset gives ɑl.pə;
+    # the correction must survive the legality failure, not be dropped
+    r = check_syllabification([['ɑ'], ['l', 'p', 'ə']])
+    assert not r.ok
+    assert 'onset' in r.reason
+    assert shapes(r.suggested) == [['ɑ', 'l'], ['p', 'ə']]
+    assert shapes(r.current) == [['ɑ'], ['l', 'p', 'ə']]
+
+
+def test_illegal_syllable_preserves_input_objects():
+    a, b = Syllable(['ɑ']), Syllable(['l', 'p', 'ə'])
+    r = check_syllabification([a, b])
+    assert not r.ok
+    # identity of the originals is preserved even on the failure path
+    assert r.input[0] is a and r.input[1] is b
+
+
+def test_illegal_syllable_without_vowel_has_no_suggestion():
+    # no nucleus anywhere -> nothing to syllabify, but current/input
+    # are still populated (defensive _try_syllabify branch)
+    r = check_syllabification([['l'], ['p']])
+    assert not r.ok
+    assert r.suggested is None
+    assert shapes(r.current) == [['l'], ['p']]
+    assert r.input == [['l'], ['p']]
+
+
 def test_result_repr_omits_segmentation_str_shows_it():
     r = check_syllabification([['ɑ', 'p'], ['r', 'ɪ', 'l']])
     assert ' . ' not in repr(r)        # repr carries no segmentation

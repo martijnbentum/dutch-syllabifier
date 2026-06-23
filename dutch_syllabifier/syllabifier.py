@@ -72,6 +72,30 @@ def is_legal_syllable(phones, strict_coda=False):
     return Result(True, 'legal syllable')
 
 
+def _try_syllabify(flat):
+    '''Maximal-onset suggestion, or None when the phones can't be split.'''
+    try:
+        return syllabify(flat)
+    except ValueError:
+        return None
+
+
+def _first_illegal_syllable(given):
+    '''Legality Result of the first illegal syllable, or None if all legal.'''
+    for syllable in given:
+        legal = is_legal_syllable(syllable)
+        if not legal.ok:
+            return legal
+    return None
+
+
+def _boundaries_match(given, suggested):
+    '''True when the given split already matches the suggested split.'''
+    given_labels = [phones_to_label(s) for s in given]
+    suggested_labels = [phones_to_label(s.phones) for s in suggested]
+    return given_labels == suggested_labels
+
+
 def check_syllabification(syllables):
     '''Judge whether a sequence of syllables has correct boundaries.
     syllables               non-empty list of Syllable objects or lists of
@@ -83,23 +107,23 @@ def check_syllabification(syllables):
     '''
     if not syllables:
         raise ValueError('no syllables to check')
-    given = [list(_as_phone_list(s)) for s in syllables]
-    for syllable in given:
-        legal = is_legal_syllable(syllable)
-        if not legal.ok:
-            return Result(False, legal.reason)
-
-    flat = [phone for syllable in given for phone in syllable]
-    suggested = syllabify(flat)
+    original = list(syllables)
+    given = [list(_as_phone_list(s)) for s in original]
     current = [Syllable(s) for s in given]
+    flat = [phone for syllable in given for phone in syllable]
+    # flat may not syllabify; the legality check below reports why
+    suggested = _try_syllabify(flat)
 
-    given_labels = [phones_to_label(s) for s in given]
-    suggested_labels = [phones_to_label(s.phones) for s in suggested]
-    if given_labels == suggested_labels:
-        return Result(True, 'correct syllable boundaries',
-            suggested=suggested, current=current, input=list(syllables))
-    return Result(False, 'boundaries differ from maximal onset',
-        suggested=suggested, current=current, input=list(syllables))
+    illegal = _first_illegal_syllable(given)
+    if illegal is not None:
+        ok, reason = False, illegal.reason
+    elif _boundaries_match(given, suggested):
+        ok, reason = True, 'correct syllable boundaries'
+    else:
+        ok, reason = False, 'boundaries differ from maximal onset'
+
+    return Result(ok, reason, suggested=suggested, current=current,
+        input=original)
 
 
 class Result:
