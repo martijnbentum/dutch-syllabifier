@@ -12,6 +12,11 @@ morphology.
 * `/sx/` as in *schild* is two phones: `['s', 'x']`.
 * `/st/` is both a legal onset cluster (*straat*) and part of legal coda
   clusters (*herfst*).
+* `w` is accepted on input as an alias of `ʋ` (it is not a separate Dutch
+  phoneme); it is normalised to `ʋ` before any lookup.
+* Vowel length is optional: tense vowels are accepted with or without `ː`
+  (`eː` ≡ `e`, `aː` ≡ `a`). Length never affects a syllable boundary, so the
+  two forms are interchangeable as nuclei.
 
 ## Nuclei
 
@@ -25,10 +30,11 @@ not form a spurious extra nucleus:
 
 * `/j/` after a vowel, as in *aai*, *ooi*, *oei*:
   *fraai* `['f', 'r', 'aː', 'j']`, *mooi* `['m', 'oː', 'j']`.
-* `/w/` after a vowel, as in *eeuw*, *ieuw*, *uw*:
-  *nieuw* `['n', 'i', 'w']`, *ruw* `['r', 'y', 'w']`.
+* `/ʋ/` after a vowel, as in *eeuw*, *ieuw*, *uw*:
+  *nieuw* `['n', 'i', 'ʋ']`, *ruw* `['r', 'y', 'ʋ']` (input `w` is accepted and
+  normalised to `ʋ`).
 
-`/j/` and `/w/` are legal codas. The vowel symbols `i`, `u`, etc. are reserved
+`/j/` and `/ʋ/` are legal codas. The vowel symbols `i`, `u`, etc. are reserved
 for nuclei. The three true diphthongs `ɛi`, `œy`, `ɑu` remain single nucleus
 phones.
 

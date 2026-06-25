@@ -26,7 +26,6 @@ NUCLEI = VOWELS | DIPHTHONGS
 KNOWN_PHONES = VOWELS | DIPHTHONGS | CONSONANTS
 
 LEGAL_ONSETS = _as_tuples(_load_json('legal_onsets.json'))
-ILLEGAL_ONSETS = _as_tuples(_load_json('illegal_onsets.json'))
 LEGAL_CODAS = _as_tuples(_load_json('legal_codas.json'))
 
 
@@ -37,7 +36,6 @@ def _validate_clusters():
     inventory cannot silently drift.
     '''
     for name, clusters in (('legal_onsets', LEGAL_ONSETS),
-            ('illegal_onsets', ILLEGAL_ONSETS),
             ('legal_codas', LEGAL_CODAS)):
         unknown = set().union(*clusters) - CONSONANTS if clusters else set()
         if unknown:
@@ -48,21 +46,40 @@ def _validate_clusters():
 _validate_clusters()
 
 
+# input aliases: symbols accepted as equivalent to a canonical phone. 'w' is
+# accepted for the labiodental approximant 'ʋ' (SAMPA-style input and the
+# post-vocalic offglide in nieuw/eeuw); it is not a separate Dutch phoneme, so
+# it is normalised here rather than duplicated across the cluster data files,
+# which keeps those files single-canonical and drift-proof.
+PHONE_ALIASES = {'w': 'ʋ'}
+
+
+def canonical_label(label):
+    '''Map an accepted alias to its canonical phone (e.g. 'w' -> 'ʋ').'''
+    return PHONE_ALIASES.get(label, label)
+
+
 def is_nucleus(label):
-    '''Return True if the label is a vowel or diphthong.'''
-    return label in NUCLEI
+    '''Return True if the label is a vowel or diphthong.
+
+    Length is optional: tense vowels are accepted with or without 'ː' (e.g.
+    'eː' and 'e' both count), since vowel length never affects Dutch syllable
+    boundaries.
+    '''
+    return canonical_label(label) in NUCLEI
 
 
 def is_known(label):
-    '''Return True if the label is a known Dutch phone.'''
-    return label in KNOWN_PHONES
+    '''Return True if the label is a known Dutch phone (aliases accepted).'''
+    return canonical_label(label) in KNOWN_PHONES
 
 
 def is_legal_onset(labels):
     '''Return True if a sequence of labels is a legal Dutch onset.
     labels                  list or tuple of consonant labels (empty is legal)
     '''
-    return len(labels) == 0 or tuple(labels) in LEGAL_ONSETS
+    onset = tuple(canonical_label(l) for l in labels)
+    return len(onset) == 0 or onset in LEGAL_ONSETS
 
 
 def is_legal_coda(labels):
@@ -71,4 +88,5 @@ def is_legal_coda(labels):
 
     Coda validation is conservative and partial in version 1.
     '''
-    return len(labels) == 0 or tuple(labels) in LEGAL_CODAS
+    coda = tuple(canonical_label(l) for l in labels)
+    return len(coda) == 0 or coda in LEGAL_CODAS

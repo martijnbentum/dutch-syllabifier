@@ -40,8 +40,12 @@ import dutch_syllabifier
 * `/sx/` as in *schild* is two phones: `['s', 'x']`.
 * `/st/` is both a legal onset (*straat*) and part of legal codas (*herfst*).
 * Post-vocalic glides are consonants, not vowels: use `/j/` (*fraai*
-  `['f', 'r', 'aː', 'j']`) and `/w/` (*nieuw* `['n', 'i', 'w']`). This keeps a
-  glide from forming a spurious second nucleus.
+  `['f', 'r', 'aː', 'j']`) and `/ʋ/` (*nieuw* `['n', 'i', 'ʋ']`). This keeps a
+  glide from forming a spurious second nucleus. `w` is accepted on input as an
+  alias of `ʋ` (it is not a separate Dutch phoneme), so `['n', 'i', 'w']` works
+  too.
+* Vowel length marks are optional: tense vowels are accepted with or without
+  `ː` (`eː` ≡ `e`, `aː` ≡ `a`), since length never changes a syllable boundary.
 
 A phone may be an IPA string or any object with a `.label` attribute. A syllable
 may be a `Syllable` object or any object with a `.phones` attribute.

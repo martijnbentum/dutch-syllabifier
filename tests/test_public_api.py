@@ -48,6 +48,27 @@ def test_complex_coda():
     assert is_legal_syllable(['h', 'ɛ', 'r', 'f', 's', 't'])
 
 
+def test_spl_is_a_legal_onset():
+    # /spl/ is a legal native Dutch onset (splinter) -> single syllable
+    assert is_legal_syllable(['s', 'p', 'l', 'ɪ', 'n', 't', 'ə', 'r'][:4])
+    assert shapes(syllabify(['ɑ', 's', 'p', 'l', 'ɪ', 't'])) == \
+        [['ɑ'], ['s', 'p', 'l', 'ɪ', 't']]
+
+
+def test_w_is_accepted_as_alias_of_labiodental():
+    # nieuw: offglide written /w/ is normalised to /ʋ/ and is a legal coda
+    assert is_legal_syllable(['n', 'i', 'w'])
+    assert is_legal_syllable(['n', 'i', 'ʋ'])
+    assert shapes(syllabify(['n', 'i', 'w'])) == [['n', 'i', 'w']]
+
+
+def test_vowel_length_mark_is_optional():
+    # taːfəl and tafel split identically; bare 'a'/'e' count as nuclei
+    assert shapes(syllabify(['t', 'a', 'f', 'e', 'l'])) == \
+        [['t', 'a'], ['f', 'e', 'l']]
+    assert is_legal_syllable(['t', 'a'])
+
+
 def test_diphthongs_are_single_symbols():
     for diphthong in ('ɛi', 'œy', 'ɑu'):
         assert is_legal_syllable([diphthong])
