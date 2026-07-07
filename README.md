@@ -236,6 +236,72 @@ result.reason
 # 'could not analyse: no syllables to check'
 ```
 
+## Learned syllabifiers (trained on CELEX)
+
+Besides the rule-based `syllabify`, the package ships two **opt-in** models
+trained on the syllable boundaries of the Dutch
+[CELEX-2](https://github.com/martijnbentum/celex) lexicon. They do not replace
+`syllabify`; maximal onset remains the default.
+
+* `CountSyllabifier` — probabilistic maximal onset: a boundary scores as the
+  smoothed log probability of the coda and onset clusters it creates, counted
+  over CELEX syllables.
+* `ClassifierSyllabifier` — an L1 logistic regression over a three-phone
+  window around each candidate boundary, so it can pick up cues (e.g. compound
+  boundaries) that pure phonotactics cannot.
+
+Both decode under the same constraint as the rule engine: exactly one boundary
+between two nuclei, so every syllable keeps exactly one nucleus. Both take the
+same input as `syllabify` and return the same `Syllable` objects:
+
+```python
+from dutch_syllabifier import ClassifierSyllabifier, CountSyllabifier
+
+model = ClassifierSyllabifier()          # loads the packaged weights
+model.syllabify(['t', 'aː', 'f', 'ə', 'l'])
+# [Syllable(['t', 'aː']), Syllable(['f', 'ə', 'l'])]
+model.boundary_indices(['t', 'aː', 'f', 'ə', 'l'])
+# [2]
+
+CountSyllabifier().syllabify(['ɑ', 'p', 'r', 'ɪ', 'l'])
+# [Syllable(['ɑ']), Syllable(['p', 'r', 'ɪ', 'l'])]
+```
+
+On a lemma-disjoint CELEX Dutch test set (word accuracy / boundary F1):
+
+| model                   | word accuracy | boundary F1 |
+| ----------------------- | ------------- | ----------- |
+| maximal onset baseline  | 0.799         | 0.909       |
+| `CountSyllabifier`      | 0.840         | 0.930       |
+| `ClassifierSyllabifier` | 0.946         | 0.977       |
+
+The gap between the baseline and the classifier is mostly morphology: CELEX
+respects morpheme boundaries in compounds and prefixed words (*uit.eind*, not
+maximal onset *ui.teind*), which the phone window can partly learn and pure
+phonotactics cannot.
+
+The model artifacts are aggregate statistics (cluster counts and feature
+weights) shipped as JSON in `dutch_syllabifier/data/`; the licensed CELEX
+lexicon itself is not included. Inference is pure Python and needs no extra
+dependencies.
+
+### Retraining
+
+Training code lives in `dutch_syllabifier/training/` and needs the `train`
+dependency group (scikit-learn and a local `celex` checkout next to this
+repository, with the licensed CELEX data):
+
+```bash
+uv sync --group train
+.venv/bin/python -m dutch_syllabifier.training
+```
+
+This rewrites the two artifacts in `dutch_syllabifier/data/` and prints the
+evaluation table above. Training skips multiword entries, words with a phone
+that has no single-phone equivalent here (e.g. the loanword affricate `dʒ`)
+and words where a syllable does not have exactly one nucleus; splits are
+lemma-disjoint so inflectional families never straddle train and test.
+
 ## Data files
 
 Machine-readable phonotactic data ships inside the package:
@@ -249,6 +315,8 @@ dutch_syllabifier/data/
   illegal_onsets.json
   legal_codas.json
   syllabification_rules.md
+  celex_onset_coda_counts.json      ← CountSyllabifier artifact
+  celex_boundary_classifier.json    ← ClassifierSyllabifier artifact
 ```
 
 ## Scope and limitations (version 1)
@@ -268,5 +336,6 @@ dutch_syllabifier/data/
 * Optional morphology-aware syllabification for compounds and prefixed words.
 * A permissive mode for loanwords, names, and dialectal variants.
 * Optional support for other phone sets such as CGN/SAMPA or MAUS/BAS symbols.
-* Optional probabilistic or corpus-derived syllabification when multiple
-  analyses are possible.
+* A CRF or other structured sequence model trained on CELEX, as a next step
+  beyond the boundary classifier (the literature standard for this task).
+* Handling ambisyllabic phones in the learned models.

@@ -14,10 +14,13 @@ from .syllabify_phraser import (
     is_valid_syllable,
     is_valid_word,
 )
+from .learned import ClassifierSyllabifier, CountSyllabifier
 from .phones import Phone, phone_to_label, phones_to_label
 from .syllables import Syllable
 
 __all__ = [
+    'ClassifierSyllabifier',
+    'CountSyllabifier',
     'Legality',
     'Phone',
     'Result',
