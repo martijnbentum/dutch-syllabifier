@@ -276,9 +276,9 @@ On a lemma-disjoint CELEX Dutch test set (word accuracy / boundary F1):
 | `ClassifierSyllabifier` | 0.946         | 0.977       |
 
 The gap between the baseline and the classifier is mostly morphology: CELEX
-respects morpheme boundaries in compounds and prefixed words (*uit.eind*, not
-maximal onset *ui.teind*), which the phone window can partly learn and pure
-phonotactics cannot.
+respects morpheme boundaries in compounds and prefixed words (*uit.ein.de* and
+*loop.af.stand*, not maximal onset *ui.tein.de* and *loo.paf.stand*), which the
+phone window can partly learn and pure phonotactics cannot.
 
 The model artifacts are aggregate statistics (cluster counts and feature
 weights) shipped as JSON in `dutch_syllabifier/data/`; the licensed CELEX
