@@ -18,10 +18,14 @@ The implementation deviates from the original sketch in three ways:
   class names, least to most sonorous; weights are the scale index. Symbol
   knowledge stays in JSON, relational knowledge stays in code.
 - **Vowels are on the scale.** The `vowel` class (top of the scale) is derived
-  from the nucleus inventory (vowels + diphthongs), so it needs no data entry
-  and adding a vowel never touches sonority data. The original consonant-only
-  scope is gone: "is a consonant" tests must use `is_nucleus(...)`, not
-  membership in the sonority table (which now covers all known phones).
+  from the vowel and diphthong categories in `phone_inventory`, so it needs no
+  data entry and adding a vowel never touches sonority data. It deliberately
+  does not use `phonotactics.NUCLEI`: sonority is a property of the phone
+  category, not the syllable role (a syllabic /l/ fills a nucleus but stays a
+  liquid), and phonotactics must stay free to build on sonority (the SSP onset
+  lint) without a circular import. The original consonant-only scope is gone:
+  "is a consonant" tests must use `is_nucleus(...)`, not membership in the
+  sonority table (which now covers all known phones).
 
 ## Data file
 

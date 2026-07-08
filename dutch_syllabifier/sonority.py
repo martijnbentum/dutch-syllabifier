@@ -3,14 +3,20 @@ and the classes are ranked on a scale, backing sonority based rules
 such as the Sonority Sequencing Principle.
 
 Consonant class membership is symbol knowledge and lives in
-data/sonority_classes.json; the vowel class is derived from the
-nucleus inventory (vowels and diphthongs), so it never needs a data
-entry. The scale order is relational knowledge and lives here in code.
+data/sonority_classes.json; the vowel class is derived from the vowel
+and diphthong categories, so it never needs a data entry. The scale
+order is relational knowledge and lives here in code.
+
+Sonority is a property of the phone category, not of the syllable
+role: a syllabic /l/ would fill a nucleus but stay a liquid. So the
+vowel class comes from the inventory, not from phonotactics.NUCLEI --
+which also keeps phonotactics free to build on sonority (the planned
+SSP onset lint) without a circular import.
 '''
 
-from .phone_inventory import CONSONANTS, _load_json, canonical_label
+from .phone_inventory import (CONSONANTS, DIPHTHONGS, VOWELS, _load_json,
+    canonical_label)
 from .phones import phone_to_label
-from .phonotactics import NUCLEI
 
 # class ranking, least -> most sonorous; the weight is the scale index
 SONORITY_SCALE = ('stop', 'fricative', 'nasal', 'liquid', 'glide', 'vowel')
@@ -21,12 +27,12 @@ _CONSONANT_CLASSES = _load_json('sonority_classes.json')
 
 def _phone_to_class():
     '''Build the phone to class table: consonants from the data file,
-    nuclei as the vowel class.'''
+    vowels and diphthongs as the vowel class.'''
     table = {}
     for name, phones in _CONSONANT_CLASSES.items():
         for phone in phones:
             table[phone] = name
-    for phone in NUCLEI:
+    for phone in VOWELS | DIPHTHONGS:
         table[phone] = 'vowel'
     return table
 
