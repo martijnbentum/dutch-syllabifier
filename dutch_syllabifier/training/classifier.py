@@ -11,7 +11,8 @@ import numpy as np
 from scipy.sparse import csr_matrix
 from sklearn.linear_model import LogisticRegression
 
-from ..learned import boundary_features, model_label, _nucleus_indices
+from .. import phonology
+from ..learned import boundary_features, _nucleus_indices
 
 
 def candidate_positions(phones, labels):
@@ -20,22 +21,23 @@ def candidate_positions(phones, labels):
     labels                  per position boundary labels
 
     boundary is a candidate syllable start index; target is 1 when the
-    gold boundary of that intervowel gap sits there.
+    gold boundary of that intervowel gap sits there. Phones are
+    canonicalized, mirroring boundary_indices at inference time.
     '''
-    model_labels = [model_label(p) for p in phones]
-    nuclei = _nucleus_indices(model_labels)
+    canonical = [phonology.canonical_label(p) for p in phones]
+    nuclei = _nucleus_indices(canonical)
     for left, right in zip(nuclei, nuclei[1:]):
         for boundary in range(left + 1, right + 1):
-            yield model_labels, boundary, labels[boundary - 1]
+            yield canonical, boundary, labels[boundary - 1]
 
 
 def _feature_counts(examples):
     '''Count feature occurrences over all candidate positions.'''
     counts = Counter()
     for phones, labels, _ in examples:
-        for model_labels, boundary, _ in candidate_positions(phones,
+        for canonical_labels, boundary, _ in candidate_positions(phones,
                 labels):
-            counts.update(boundary_features(model_labels, boundary))
+            counts.update(boundary_features(canonical_labels, boundary))
     return counts
 
 
@@ -43,9 +45,9 @@ def _build_matrix(examples, vocabulary):
     '''Sparse feature matrix and target vector for all candidates.'''
     indices, indptr, targets = [], [0], []
     for phones, labels, _ in examples:
-        for model_labels, boundary, target in candidate_positions(
+        for canonical_labels, boundary, target in candidate_positions(
                 phones, labels):
-            features = boundary_features(model_labels, boundary)
+            features = boundary_features(canonical_labels, boundary)
             row = [vocabulary[f] for f in features if f in vocabulary]
             indices.extend(sorted(set(row)))
             indptr.append(len(indices))
@@ -74,7 +76,8 @@ def train_classifier(examples, min_count=3, c=1.0, verbose=True):
     if verbose:
         print(f'training on {matrix.shape[0]} boundary candidates, '
             f'{len(vocabulary)} features')
-    model = LogisticRegression(l1_ratio=1, solver='liblinear', C=c)
+    model = LogisticRegression(l1_ratio=1, solver='liblinear', C=c,
+        random_state=0)
     model.fit(matrix, targets)
     weights = {}
     coefficients = model.coef_[0]

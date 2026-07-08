@@ -1,3 +1,12 @@
+'''Dutch phonology facts: the phone inventory, accepted input aliases
+and phonotactic legality of onset and coda clusters.
+
+All symbol knowledge lives in the JSON files in data/. The inventory
+files are single-canonical: every phone appears in exactly one form and
+accepted input variants live in aliases.json, applied by
+canonical_label() at lookup time. Caller phones are never rewritten.
+'''
+
 import json
 from importlib import resources
 
@@ -25,15 +34,21 @@ CONSONANTS = set(_load_json('consonants.json'))
 NUCLEI = VOWELS | DIPHTHONGS
 KNOWN_PHONES = VOWELS | DIPHTHONGS | CONSONANTS
 
+# input symbols accepted as equivalent to a canonical phone: SAMPA style
+# 'w' for 'ʋ', ascii 'g' for ipa 'ɡ' and the bare tense vowels for the
+# long forms (vowel length never affects Dutch syllable boundaries)
+ALIASES = _load_json('aliases.json')
+
 LEGAL_ONSETS = _as_tuples(_load_json('legal_onsets.json'))
 LEGAL_CODAS = _as_tuples(_load_json('legal_codas.json'))
 
 
-def _validate_clusters():
-    '''Raise ValueError if any onset/coda cluster uses an undeclared consonant.
+def _validate_data():
+    '''Raise ValueError when the data files drift apart.
 
-    Keeps the cluster data files consistent with consonants.json so the phone
-    inventory cannot silently drift.
+    Cluster files may only use declared consonants; alias targets must
+    be canonical phones and alias keys may not shadow one. Keeps the
+    symbol set consistent so it cannot silently drift.
     '''
     for name, clusters in (('legal_onsets', LEGAL_ONSETS),
             ('legal_codas', LEGAL_CODAS)):
@@ -41,22 +56,22 @@ def _validate_clusters():
         if unknown:
             raise ValueError(
                 f'{name}.json uses undeclared consonants: {sorted(unknown)}')
+    bad_targets = set(ALIASES.values()) - KNOWN_PHONES
+    if bad_targets:
+        raise ValueError(
+            f'aliases.json targets unknown phones: {sorted(bad_targets)}')
+    shadowed = set(ALIASES) & KNOWN_PHONES
+    if shadowed:
+        raise ValueError(
+            f'aliases.json keys shadow canonical phones: {sorted(shadowed)}')
 
 
-_validate_clusters()
-
-
-# input aliases: symbols accepted as equivalent to a canonical phone. 'w' is
-# accepted for the labiodental approximant 'ʋ' (SAMPA-style input and the
-# post-vocalic offglide in nieuw/eeuw); it is not a separate Dutch phoneme, so
-# it is normalised here rather than duplicated across the cluster data files,
-# which keeps those files single-canonical and drift-proof.
-PHONE_ALIASES = {'w': 'ʋ'}
+_validate_data()
 
 
 def canonical_label(label):
     '''Map an accepted alias to its canonical phone (e.g. 'w' -> 'ʋ').'''
-    return PHONE_ALIASES.get(label, label)
+    return ALIASES.get(label, label)
 
 
 def is_nucleus(label):

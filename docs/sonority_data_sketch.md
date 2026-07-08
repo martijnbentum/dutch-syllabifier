@@ -1,4 +1,4 @@
-# Sketch: sonority data in `data.py`
+# Sketch: sonority data in `phonology.py` (formerly `data.py`)
 
 Status: **sketch / first version.** This is a proposed *first* implementation of
 a sonority scale as reference data, to back both the syllabic-consonant nuclei
@@ -19,7 +19,7 @@ will likely change as the onset rule is built out.
 ]
 ```
 
-## `data.py` additions
+## `phonology.py` (formerly `data.py`) additions
 
 ```python
 # sonority tiers, least -> most sonorous; rank is the tier index

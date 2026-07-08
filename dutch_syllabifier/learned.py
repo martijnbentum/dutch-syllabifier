@@ -12,19 +12,13 @@ import json
 import math
 from importlib import resources
 
-from . import data
+from . import phonology
 from .phones import phones_to_label
 from .syllabifier import _check_known
 from .syllables import Syllable
 
 COUNTS_FILE = 'celex_onset_coda_counts.json'
 CLASSIFIER_FILE = 'celex_boundary_classifier.json'
-
-# CELEX ipa uses the long symbol for tense vowels; map bare tense
-# input (accepted by this package, e.g. 'e' for 'eː') to the trained
-# symbol. Model lookup only; the caller's phones are never changed.
-TENSE_TO_LONG = {'a': 'aː', 'e': 'eː', 'i': 'iː', 'o': 'oː', 'u': 'uː',
-    'y': 'yː', 'ø': 'øː', 'œ': 'œː'}
 
 
 def load_artifact(filename):
@@ -36,15 +30,9 @@ def load_artifact(filename):
         return json.load(f)
 
 
-def model_label(label):
-    '''Map a phone label to the symbol used in the training data.'''
-    label = data.canonical_label(label)
-    return TENSE_TO_LONG.get(label, label)
-
-
 def boundary_features(labels, boundary):
     '''Feature strings for a boundary before labels[boundary].
-    labels                  list of model phone labels for a word
+    labels                  list of canonical phone labels for a word
     boundary                candidate boundary index (syllable start)
 
     Shared between training and inference so the two always agree.
@@ -67,19 +55,19 @@ def boundary_features(labels, boundary):
 def _cv_symbol(label):
     '''V, C or # for one window label.'''
     if label == '#': return '#'
-    return 'V' if data.is_nucleus(label) else 'C'
+    return 'V' if phonology.is_nucleus(label) else 'C'
 
 
 def _nucleus_indices(labels):
     '''Indices of nucleus (vowel or diphthong) labels.'''
-    return [i for i, label in enumerate(labels) if data.is_nucleus(label)]
+    return [i for i, label in enumerate(labels) if phonology.is_nucleus(label)]
 
 
 def _consonants_before(labels, boundary):
     '''Consonant labels from the previous nucleus up to the boundary.'''
     coda = []
     for index in range(boundary - 1, -1, -1):
-        if data.is_nucleus(labels[index]): break
+        if phonology.is_nucleus(labels[index]): break
         coda.append(labels[index])
     return list(reversed(coda))
 
@@ -88,7 +76,7 @@ def _consonants_after(labels, boundary):
     '''Consonant labels from the boundary up to the next nucleus.'''
     onset = []
     for index in range(boundary, len(labels)):
-        if data.is_nucleus(labels[index]): break
+        if phonology.is_nucleus(labels[index]): break
         onset.append(labels[index])
     return onset
 
@@ -123,7 +111,7 @@ class _LearnedSyllabifier:
         '''
         labels = phones_to_label(phones)
         _check_known(labels)
-        labels = [model_label(label) for label in labels]
+        labels = [phonology.canonical_label(label) for label in labels]
         nuclei = _nucleus_indices(labels)
         if not nuclei:
             raise ValueError('phone sequence has no vowel nucleus')

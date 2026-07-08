@@ -10,23 +10,27 @@ import hashlib
 
 from celex.training_data import training_examples
 
-from .. import data
+from .. import phonology
 
-# celex ipa symbols without an identical phone in this package
-CELEX_TO_IPA = {'ʉ': 'ʏ', 'g': 'ɡ', 'ɒː': 'ɔː', 'iːː': 'iː', 'yːː': 'yː'}
+# celex ipa symbols this package's inventory deliberately collapses
+# (see NOTES/phone_symbol_normalization_2026-07-08.md); plain aliases
+# like ascii 'g' are handled by phonology.canonical_label
+CELEX_TO_IPA = {'ʉ': 'ʏ', 'ɒː': 'ɔː', 'iːː': 'iː', 'yːː': 'yː'}
 
 
 def normalize_phones(phones):
-    '''Map celex ipa symbols to this package's inventory.
+    '''Map celex ipa symbols to this package's canonical labels.
     phones                  list of celex ipa symbols
 
     Returns the normalized list, or None when a symbol has no single
-    phone equivalent (e.g. the loanword affricate dʒ).
+    phone equivalent (e.g. the loanword affricate dʒ). Emitting
+    canonical labels here keeps the trained artifacts repo-canonical
+    by construction.
     '''
     normalized = []
     for phone in phones:
-        phone = CELEX_TO_IPA.get(phone, phone)
-        if not data.is_known(phone): return None
+        phone = phonology.canonical_label(CELEX_TO_IPA.get(phone, phone))
+        if phone not in phonology.KNOWN_PHONES: return None
         normalized.append(phone)
     return normalized
 
@@ -46,7 +50,7 @@ def syllable_groups(phones, labels):
 def _one_nucleus_per_syllable(phones, labels):
     '''True when every syllable has exactly one nucleus.'''
     for group in syllable_groups(phones, labels):
-        nuclei = [p for p in group if data.is_nucleus(p)]
+        nuclei = [p for p in group if phonology.is_nucleus(p)]
         if len(nuclei) != 1: return False
     return True
 

@@ -12,7 +12,7 @@ def _rank(label):
     (vowels/diphthongs have no rank, so callers read None as "not a consonant").'''
     if label is None:
         return None
-    return data.SONORITY.get(data.canonical_label(label))
+    return phonology.SONORITY.get(phonology.canonical_label(label))
 
 
 def _is_sonority_peak(labels, i):
@@ -56,7 +56,7 @@ be cleaner to explore enriching the `Phone` class instead, e.g.:
 
 - a `Phone.sonority` property (and `is_nucleus` / `is_syllabic_sonorant`), so a
   phone carries its own phonological features rather than every function doing a
-  `data.SONORITY` lookup on a string;
+  `phonology.SONORITY` lookup on a string;
 - `_is_sonority_peak` / `_syllabic_nuclei` could then operate on `Phone` objects
   and read `phone.sonority`, making the peak test read like the linguistics.
 

@@ -1,7 +1,8 @@
 import pytest
 
 from dutch_syllabifier.learned import (CountSyllabifier,
-    ClassifierSyllabifier, boundary_features, model_label)
+    ClassifierSyllabifier, boundary_features)
+from dutch_syllabifier.phonology import canonical_label
 
 
 def make_count_model():
@@ -47,10 +48,11 @@ def test_classifier_syllabifier_scores_boundaries():
     assert model.boundary_indices(['ɑ', 'l', 'p', 'ə']) == [2]
 
 
-def test_model_label_normalizes_input():
-    assert model_label('w') == 'ʋ'
-    assert model_label('e') == 'eː'
-    assert model_label('ɛi') == 'ɛi'
+def test_canonical_label_normalizes_input():
+    assert canonical_label('w') == 'ʋ'
+    assert canonical_label('g') == 'ɡ'
+    assert canonical_label('e') == 'eː'
+    assert canonical_label('ɛi') == 'ɛi'
 
 
 def test_learned_accepts_short_tense_vowels():
