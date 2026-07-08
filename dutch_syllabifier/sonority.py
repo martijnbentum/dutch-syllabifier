@@ -8,9 +8,9 @@ nucleus inventory (vowels and diphthongs), so it never needs a data
 entry. The scale order is relational knowledge and lives here in code.
 '''
 
-from .phone_inventory import (CONSONANTS, NUCLEI, _load_json,
-    canonical_label)
+from .phone_inventory import CONSONANTS, _load_json, canonical_label
 from .phones import phone_to_label
+from .phonotactics import NUCLEI
 
 # class ranking, least -> most sonorous; the weight is the scale index
 SONORITY_SCALE = ('stop', 'fricative', 'nasal', 'liquid', 'glide', 'vowel')

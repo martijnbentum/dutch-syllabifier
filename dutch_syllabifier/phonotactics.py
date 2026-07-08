@@ -1,11 +1,16 @@
-'''Phonotactic legality of Dutch onset and coda clusters.
+'''Phonotactic facts about Dutch syllables: which phones can fill the
+nucleus role and which onset and coda clusters are legal.
 
 The legal clusters are whitelists in data/legal_onsets.json and
 data/legal_codas.json; they may only use phones declared in the
 consonant inventory, validated at import time.
 '''
 
-from .phone_inventory import CONSONANTS, _load_json, canonical_label
+from .phone_inventory import (CONSONANTS, DIPHTHONGS, VOWELS, _load_json,
+    canonical_label)
+
+# nucleus is a syllable role; vowels and diphthongs can fill it
+NUCLEI = VOWELS | DIPHTHONGS
 
 
 def _as_tuples(sequences):
@@ -28,6 +33,16 @@ def _validate_clusters():
 
 
 _validate_clusters()
+
+
+def is_nucleus(label):
+    '''Return True if the label is a vowel or diphthong.
+
+    Length is optional: tense vowels are accepted with or without 'ː' (e.g.
+    'eː' and 'e' both count), since vowel length never affects Dutch syllable
+    boundaries.
+    '''
+    return canonical_label(label) in NUCLEI
 
 
 def is_legal_onset(labels):

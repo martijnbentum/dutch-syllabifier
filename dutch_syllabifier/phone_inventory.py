@@ -20,13 +20,10 @@ def _load_json(filename):
         return json.load(f)
 
 
-# phone inventory, by category
+# phone inventory, by category; known phones is the category union
 VOWELS = set(_load_json('vowels.json'))
 DIPHTHONGS = set(_load_json('diphthongs.json'))
 CONSONANTS = set(_load_json('consonants.json'))
-
-# nuclei is a syllable role; known phones is the category union
-NUCLEI = VOWELS | DIPHTHONGS
 KNOWN_PHONES = VOWELS | DIPHTHONGS | CONSONANTS
 
 # input symbols accepted as equivalent to a canonical phone: SAMPA style
@@ -58,16 +55,6 @@ _validate_aliases()
 def canonical_label(label):
     '''Map an accepted alias to its canonical phone (e.g. 'w' -> 'ʋ').'''
     return ALIASES.get(label, label)
-
-
-def is_nucleus(label):
-    '''Return True if the label is a vowel or diphthong.
-
-    Length is optional: tense vowels are accepted with or without 'ː' (e.g.
-    'eː' and 'e' both count), since vowel length never affects Dutch syllable
-    boundaries.
-    '''
-    return canonical_label(label) in NUCLEI
 
 
 def is_known(label):

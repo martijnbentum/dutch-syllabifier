@@ -10,7 +10,7 @@ import hashlib
 
 from celex.training_data import training_examples
 
-from .. import phone_inventory
+from .. import phone_inventory, phonotactics
 
 # celex ipa symbols this package's inventory deliberately collapses
 # (see NOTES/phone_symbol_normalization_2026-07-08.md); plain aliases
@@ -51,7 +51,7 @@ def syllable_groups(phones, labels):
 def _one_nucleus_per_syllable(phones, labels):
     '''True when every syllable has exactly one nucleus.'''
     for group in syllable_groups(phones, labels):
-        nuclei = [p for p in group if phone_inventory.is_nucleus(p)]
+        nuclei = [p for p in group if phonotactics.is_nucleus(p)]
         if len(nuclei) != 1: return False
     return True
 

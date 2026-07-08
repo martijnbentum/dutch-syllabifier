@@ -303,7 +303,7 @@ def _check_known(labels):
 def _nucleus_indices(labels):
     '''Return the indices of nucleus (vowel or diphthong) phones.'''
     return [i for i, lab in enumerate(labels)
-        if phone_inventory.is_nucleus(lab)]
+        if phonotactics.is_nucleus(lab)]
 
 
 def _as_phone_list(syllable):

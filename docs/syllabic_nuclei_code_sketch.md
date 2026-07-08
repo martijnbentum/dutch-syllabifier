@@ -13,7 +13,7 @@ consonant" can no longer be read off a missing rank -- the guard below uses
 def _rank(label):
     '''Sonority rank of a consonant, or None if it is not a consonant
     (so callers read None as "not a consonant, the real nucleus").'''
-    if label is None or phone_inventory.is_nucleus(label):
+    if label is None or phonotactics.is_nucleus(label):
         return None
     return sonority.sonority_weight(label)
 
