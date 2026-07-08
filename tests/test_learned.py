@@ -2,7 +2,7 @@ import pytest
 
 from dutch_syllabifier.learned import (CountSyllabifier,
     ClassifierSyllabifier, boundary_features)
-from dutch_syllabifier.phonology import canonical_label
+from dutch_syllabifier.phone_inventory import canonical_label
 
 
 def make_count_model():

@@ -10,11 +10,11 @@ import hashlib
 
 from celex.training_data import training_examples
 
-from .. import phonology
+from .. import phone_inventory
 
 # celex ipa symbols this package's inventory deliberately collapses
 # (see NOTES/phone_symbol_normalization_2026-07-08.md); plain aliases
-# like ascii 'g' are handled by phonology.canonical_label
+# like ascii 'g' are handled by phone_inventory.canonical_label
 CELEX_TO_IPA = {'ʉ': 'ʏ', 'ɒː': 'ɔː', 'iːː': 'iː', 'yːː': 'yː'}
 
 
@@ -29,8 +29,9 @@ def normalize_phones(phones):
     '''
     normalized = []
     for phone in phones:
-        phone = phonology.canonical_label(CELEX_TO_IPA.get(phone, phone))
-        if phone not in phonology.KNOWN_PHONES: return None
+        phone = phone_inventory.canonical_label(
+            CELEX_TO_IPA.get(phone, phone))
+        if phone not in phone_inventory.KNOWN_PHONES: return None
         normalized.append(phone)
     return normalized
 
@@ -50,7 +51,7 @@ def syllable_groups(phones, labels):
 def _one_nucleus_per_syllable(phones, labels):
     '''True when every syllable has exactly one nucleus.'''
     for group in syllable_groups(phones, labels):
-        nuclei = [p for p in group if phonology.is_nucleus(p)]
+        nuclei = [p for p in group if phone_inventory.is_nucleus(p)]
         if len(nuclei) != 1: return False
     return True
 

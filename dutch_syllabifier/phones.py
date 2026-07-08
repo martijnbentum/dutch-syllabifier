@@ -1,6 +1,6 @@
 import warnings
 
-from . import phonology
+from . import phone_inventory
 
 
 class UnknownPhoneWarning(UserWarning):
@@ -64,7 +64,7 @@ def is_ipa_phone(label):
     '''Return True if the label is a known Dutch IPA phone.
     label                   IPA symbol string (aliases accepted, e.g. 'w')
     '''
-    return phonology.is_known(label)
+    return phone_inventory.is_known(label)
 
 
 def warn_if_unknown_phone(label):

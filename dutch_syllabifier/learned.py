@@ -12,7 +12,7 @@ import json
 import math
 from importlib import resources
 
-from . import phonology
+from . import phone_inventory
 from .phones import phones_to_label
 from .syllabifier import _check_known
 from .syllables import Syllable
@@ -55,19 +55,20 @@ def boundary_features(labels, boundary):
 def _cv_symbol(label):
     '''V, C or # for one window label.'''
     if label == '#': return '#'
-    return 'V' if phonology.is_nucleus(label) else 'C'
+    return 'V' if phone_inventory.is_nucleus(label) else 'C'
 
 
 def _nucleus_indices(labels):
     '''Indices of nucleus (vowel or diphthong) labels.'''
-    return [i for i, label in enumerate(labels) if phonology.is_nucleus(label)]
+    return [i for i, label in enumerate(labels)
+        if phone_inventory.is_nucleus(label)]
 
 
 def _consonants_before(labels, boundary):
     '''Consonant labels from the previous nucleus up to the boundary.'''
     coda = []
     for index in range(boundary - 1, -1, -1):
-        if phonology.is_nucleus(labels[index]): break
+        if phone_inventory.is_nucleus(labels[index]): break
         coda.append(labels[index])
     return list(reversed(coda))
 
@@ -76,7 +77,7 @@ def _consonants_after(labels, boundary):
     '''Consonant labels from the boundary up to the next nucleus.'''
     onset = []
     for index in range(boundary, len(labels)):
-        if phonology.is_nucleus(labels[index]): break
+        if phone_inventory.is_nucleus(labels[index]): break
         onset.append(labels[index])
     return onset
 
@@ -111,7 +112,8 @@ class _LearnedSyllabifier:
         '''
         labels = phones_to_label(phones)
         _check_known(labels)
-        labels = [phonology.canonical_label(label) for label in labels]
+        labels = [phone_inventory.canonical_label(label)
+            for label in labels]
         nuclei = _nucleus_indices(labels)
         if not nuclei:
             raise ValueError('phone sequence has no vowel nucleus')

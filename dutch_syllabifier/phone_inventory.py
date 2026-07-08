@@ -1,5 +1,5 @@
-'''Dutch phonology facts: the phone inventory, accepted input aliases
-and phonotactic legality of onset and coda clusters.
+'''Dutch phone inventory: the known phones by category and the
+accepted input aliases.
 
 All symbol knowledge lives in the JSON files in data/. The inventory
 files are single-canonical: every phone appears in exactly one form and
@@ -20,11 +20,6 @@ def _load_json(filename):
         return json.load(f)
 
 
-def _as_tuples(sequences):
-    '''Turn a list of phone lists into a set of tuples for fast lookup.'''
-    return set(tuple(seq) for seq in sequences)
-
-
 # phone inventory, by category
 VOWELS = set(_load_json('vowels.json'))
 DIPHTHONGS = set(_load_json('diphthongs.json'))
@@ -39,23 +34,14 @@ KNOWN_PHONES = VOWELS | DIPHTHONGS | CONSONANTS
 # long forms (vowel length never affects Dutch syllable boundaries)
 ALIASES = _load_json('aliases.json')
 
-LEGAL_ONSETS = _as_tuples(_load_json('legal_onsets.json'))
-LEGAL_CODAS = _as_tuples(_load_json('legal_codas.json'))
 
+def _validate_aliases():
+    '''Raise ValueError when aliases.json drifts from the inventory.
 
-def _validate_data():
-    '''Raise ValueError when the data files drift apart.
-
-    Cluster files may only use declared consonants; alias targets must
-    be canonical phones and alias keys may not shadow one. Keeps the
-    symbol set consistent so it cannot silently drift.
+    Alias targets must be canonical phones and alias keys may not
+    shadow one. Keeps the symbol set consistent so it cannot silently
+    drift.
     '''
-    for name, clusters in (('legal_onsets', LEGAL_ONSETS),
-            ('legal_codas', LEGAL_CODAS)):
-        unknown = set().union(*clusters) - CONSONANTS if clusters else set()
-        if unknown:
-            raise ValueError(
-                f'{name}.json uses undeclared consonants: {sorted(unknown)}')
     bad_targets = set(ALIASES.values()) - KNOWN_PHONES
     if bad_targets:
         raise ValueError(
@@ -66,7 +52,7 @@ def _validate_data():
             f'aliases.json keys shadow canonical phones: {sorted(shadowed)}')
 
 
-_validate_data()
+_validate_aliases()
 
 
 def canonical_label(label):
@@ -87,21 +73,3 @@ def is_nucleus(label):
 def is_known(label):
     '''Return True if the label is a known Dutch phone (aliases accepted).'''
     return canonical_label(label) in KNOWN_PHONES
-
-
-def is_legal_onset(labels):
-    '''Return True if a sequence of labels is a legal Dutch onset.
-    labels                  list or tuple of consonant labels (empty is legal)
-    '''
-    onset = tuple(canonical_label(l) for l in labels)
-    return len(onset) == 0 or onset in LEGAL_ONSETS
-
-
-def is_legal_coda(labels):
-    '''Return True if a sequence of labels is a legal Dutch coda.
-    labels                  list or tuple of consonant labels (empty is legal)
-
-    Coda validation is conservative and partial in version 1.
-    '''
-    coda = tuple(canonical_label(l) for l in labels)
-    return len(coda) == 0 or coda in LEGAL_CODAS

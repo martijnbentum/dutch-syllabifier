@@ -11,7 +11,7 @@ import numpy as np
 from scipy.sparse import csr_matrix
 from sklearn.linear_model import LogisticRegression
 
-from .. import phonology
+from .. import phone_inventory
 from ..learned import boundary_features, _nucleus_indices
 
 
@@ -24,7 +24,7 @@ def candidate_positions(phones, labels):
     gold boundary of that intervowel gap sits there. Phones are
     canonicalized, mirroring boundary_indices at inference time.
     '''
-    canonical = [phonology.canonical_label(p) for p in phones]
+    canonical = [phone_inventory.canonical_label(p) for p in phones]
     nuclei = _nucleus_indices(canonical)
     for left, right in zip(nuclei, nuclei[1:]):
         for boundary in range(left + 1, right + 1):

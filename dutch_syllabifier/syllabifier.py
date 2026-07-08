@@ -1,4 +1,4 @@
-from . import phonology
+from . import phone_inventory, phonotactics
 from .phones import phones_to_label
 from .syllables import Syllable
 
@@ -93,9 +93,9 @@ class Legality:
             return cls(multiple_nuclei=True)
         n = nuclei[0]
         onset, coda = labels[:n], labels[n + 1:]
-        if not phonology.is_legal_onset(onset):
+        if not phonotactics.is_legal_onset(onset):
             return cls(illegal_onset=True, offending_phones=onset)
-        if not phonology.is_legal_coda(coda):
+        if not phonotactics.is_legal_coda(coda):
             return cls(unlisted_coda=True, offending_phones=coda)
         return cls.legal()
 
@@ -286,7 +286,7 @@ def _maximal_onset_split(labels, left, right):
     '''
     for size in range(right - left - 1, 0, -1):
         onset = labels[right - size:right]
-        if phonology.is_legal_onset(onset):
+        if phonotactics.is_legal_onset(onset):
             return right - size
     return right
 
@@ -296,13 +296,14 @@ def _check_known(labels):
     labels                  list of IPA labels
     '''
     for lab in labels:
-        if not phonology.is_known(lab):
+        if not phone_inventory.is_known(lab):
             raise ValueError(f'unknown phone symbol: {lab!r}')
 
 
 def _nucleus_indices(labels):
     '''Return the indices of nucleus (vowel or diphthong) phones.'''
-    return [i for i, lab in enumerate(labels) if phonology.is_nucleus(lab)]
+    return [i for i, lab in enumerate(labels)
+        if phone_inventory.is_nucleus(lab)]
 
 
 def _as_phone_list(syllable):

@@ -2,7 +2,7 @@
 
 from collections import Counter
 
-from .. import phonology
+from .. import phone_inventory
 from .dataset import syllable_groups
 
 
@@ -25,6 +25,7 @@ def count_onsets_codas(examples):
 
 def _split_syllable(group):
     '''Onset and coda consonants around the nucleus of one syllable.'''
-    nucleus = [i for i, p in enumerate(group) if phonology.is_nucleus(p)]
+    nucleus = [i for i, p in enumerate(group)
+        if phone_inventory.is_nucleus(p)]
     first, last = nucleus[0], nucleus[-1]
     return group[:first], group[last + 1:]
