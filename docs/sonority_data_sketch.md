@@ -1,65 +1,59 @@
-# Sketch: sonority data in `phonology.py` (formerly `data.py`)
+# Sonority data: implemented in `sonority.py`
 
-Status: **sketch / first version.** This is a proposed *first* implementation of
-a sonority scale as reference data, to back both the syllabic-consonant nuclei
-(`syllabic_consonant_nuclei.md`) and the future onset lint
-(`sonority_onset_fallback.md`). Tiers and scope below are a starting point and
-will likely change as the onset rule is built out.
+Status: **implemented** (originally a sketch for `phonology.py`, since split
+into `phone_inventory.py` and `phonotactics.py`). The scale backs the
+syllabic-consonant nuclei plan (`syllabic_consonant_nuclei.md`) and the future
+onset lint (`sonority_onset_fallback.md`).
+
+## Design as implemented
+
+The implementation deviates from the original sketch in three ways:
+
+- **Named classes instead of anonymous tiers.** The data file maps class
+  names to phones (`stop`, `fricative`, `nasal`, `liquid`, `glide`) instead
+  of an ordered list of lists. Names keep the file self-describing and leave
+  room for a finer split later (e.g. voiced vs voiceless fricatives, per
+  `sonority_onset_fallback.md`).
+- **Scale order lives in code.** `SONORITY_SCALE` in `sonority.py` ranks the
+  class names, least to most sonorous; weights are the scale index. Symbol
+  knowledge stays in JSON, relational knowledge stays in code.
+- **Vowels are on the scale.** The `vowel` class (top of the scale) is derived
+  from the nucleus inventory (vowels + diphthongs), so it needs no data entry
+  and adding a vowel never touches sonority data. The original consonant-only
+  scope is gone: "is a consonant" tests must use `is_nucleus(...)`, not
+  membership in the sonority table (which now covers all known phones).
 
 ## Data file
 
 ```json
-// dutch_syllabifier/data/sonority.json  (tiers, least -> most sonorous)
-[
-  ["p", "b", "t", "d", "k", "ɡ"],
-  ["f", "v", "s", "z", "ʃ", "ʒ", "x", "ɣ", "h"],
-  ["m", "n", "ŋ"],
-  ["l", "r"],
-  ["ʋ", "j"]
-]
+// dutch_syllabifier/data/sonority_classes.json
+{
+  "stop":      ["p", "b", "t", "d", "k", "ɡ"],
+  "fricative": ["f", "v", "s", "z", "ʃ", "ʒ", "x", "ɣ", "h"],
+  "nasal":     ["m", "n", "ŋ"],
+  "liquid":    ["l", "r"],
+  "glide":     ["ʋ", "j"]
+}
 ```
 
-## `phonology.py` (formerly `data.py`) additions
+Import-time validation (`_validate_sonority_classes`) requires the class
+names to match the consonant part of `SONORITY_SCALE`, each phone to appear
+in exactly one class, and the classified phones to equal the consonant
+inventory exactly -- drift between the data files is a loud import error.
+
+## API
 
 ```python
-# sonority tiers, least -> most sonorous; rank is the tier index
-_SONORITY_TIERS = _load_json('sonority.json')
-SONORITY = {ph: rank for rank, tier in enumerate(_SONORITY_TIERS) for ph in tier}
-
-# sonorants that may become a syllabic nucleus in reduced syllables (-el/-en/-er).
-# A deliberate subset, not "all sonorants": excludes /ŋ/, optionally add 'm' (-em).
-SYLLABIC_SONORANTS = ('l', 'n', 'r')
-
-
-def _validate_sonority():
-    '''Raise ValueError if any consonant lacks a sonority rank (or vice versa).'''
-    missing = CONSONANTS - set(SONORITY)
-    extra = set(SONORITY) - CONSONANTS
-    if missing or extra:
-        raise ValueError(
-            f'sonority.json must rank exactly the consonants; '
-            f'missing={sorted(missing)} extra={sorted(extra)}')
-
-
-_validate_clusters()
-_validate_sonority()
-
-
-def sonority(label):
-    '''Sonority rank of a consonant (higher = more sonorous). KeyError on a
-    non-consonant, which callers use to mean "not a consonant".'''
-    return SONORITY[canonical_label(label)]
+sonority_class('p')                 # 'stop'
+sonority_class('w')                 # 'glide'  (alias -> 'ʋ')
+sonority_class('ɛi')                # 'vowel'
+sonority_weight('l')                # 3
+sonority_classes(['s', 't', 'r'])   # ['fricative', 'stop', 'liquid']
+sonority_weights(['s', 't', 'aː'])  # [1, 0, 5]
 ```
 
-## Notes / open questions for the next version
+## Still open (for the syllabic-nuclei work)
 
-- **Consonant-only scope (deliberate, for now).** Vowels have no rank. The
-  syllabic-nucleus peak test relies on `label in SONORITY` meaning "is a
-  consonant", so a vowel neighbour correctly fails. When the onset lint needs a
-  full scale, add a top vowel tier and switch that guard to `is_nucleus(...)`.
-- **Tiers are coarse.** Five tiers (stop / fricative / nasal / liquid / glide)
-  are enough for the syllabic-consonant peak test; the onset rule may want a
-  finer split (e.g. voiced vs voiceless obstruents) and a tunable minimum
-  sonority distance.
-- **`SYLLABIC_SONORANTS` is curated, not derived.** It is intentionally not
-  "every sonorant" -- `/ŋ/` is excluded and `/m/` is optional (-em: bezem).
+- **`SYLLABIC_SONORANTS` is not implemented.** The curated subset of
+  sonorants that may become a syllabic nucleus (`l n r`, excluding `/ŋ/`,
+  `/m/` optional) belongs to the syllabic-nuclei feature, not the scale.

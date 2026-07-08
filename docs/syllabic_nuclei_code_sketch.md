@@ -1,18 +1,21 @@
 # Sketch: syllabic-nucleus detection in `syllabifier.py`
 
 Status: **sketch.** Proposed helpers for promoting a trailing `/l n r/` to a
-syllabic nucleus (the MVP described in `syllabic_consonant_nuclei.md`). Depends
-on the sonority data in `sonority_data_sketch.md`.
+syllabic nucleus (the MVP described in `syllabic_consonant_nuclei.md`). The
+sonority scale it depends on is now implemented in `sonority.py` (see
+`sonority_data_sketch.md`). Note the scale now includes vowels, so "not a
+consonant" can no longer be read off a missing rank -- the guard below uses
+`is_nucleus` explicitly.
 
 ```python
 # dutch_syllabifier/syllabifier.py
 
 def _rank(label):
     '''Sonority rank of a consonant, or None if it is not a consonant
-    (vowels/diphthongs have no rank, so callers read None as "not a consonant").'''
-    if label is None:
+    (so callers read None as "not a consonant, the real nucleus").'''
+    if label is None or phone_inventory.is_nucleus(label):
         return None
-    return phonology.SONORITY.get(phonology.canonical_label(label))
+    return sonority.sonority_weight(label)
 
 
 def _is_sonority_peak(labels, i):
@@ -44,7 +47,8 @@ def _syllabic_nuclei(labels, vowels):
     last_vowel = vowels[-1] if vowels else -1
     tail = range(len(labels) - 1, last_vowel, -1)       # after last vowel, R->L
     for i in tail:
-        if labels[i] in data.SYLLABIC_SONORANTS and _is_sonority_peak(labels, i):
+        if (labels[i] in SYLLABIC_SONORANTS
+                and _is_sonority_peak(labels, i)):
             return [i]
     return []
 ```
@@ -56,7 +60,8 @@ be cleaner to explore enriching the `Phone` class instead, e.g.:
 
 - a `Phone.sonority` property (and `is_nucleus` / `is_syllabic_sonorant`), so a
   phone carries its own phonological features rather than every function doing a
-  `phonology.SONORITY` lookup on a string;
+  `sonority.sonority_weight` lookup on a string (beware the circular import:
+  `sonority` imports from `phones`, so `Phone` would need a lazy import);
 - `_is_sonority_peak` / `_syllabic_nuclei` could then operate on `Phone` objects
   and read `phone.sonority`, making the peak test read like the linguistics.
 
