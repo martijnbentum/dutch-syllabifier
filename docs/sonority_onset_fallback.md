@@ -1,10 +1,13 @@
 # Design note: sonority-based onset rule as fallback / whitelist check
 
-Status: **sketch, not implemented.** Onset legality today is a pure whitelist
-lookup against `legal_onsets.json`. This note sketches a rule-based companion
-based on the Sonority Sequencing Principle (SSP), to use either as a *fallback*
-for clusters not in the whitelist, or as a *lint* that cross-checks the
-whitelist. Reference: Booij (1995), *The Phonology of Dutch*.
+Status: **mode 2 (lint) implemented; mode 1 (fallback) not.** The rule lives
+in `phonotactics.is_sonority_legal_onset` and the lint in
+`tests/test_phonotactics.py`: whitelisted onsets the rule rejects fail hard;
+SSP-valid onsets attested in CELEX but missing from `legal_onsets.json` are
+reported as an informational pytest skip. Onset legality for boundary
+placement remains a pure whitelist lookup against `legal_onsets.json`.
+This note sketches the rule-based companion based on the Sonority Sequencing
+Principle (SSP). Reference: Booij (1995), *The Phonology of Dutch*.
 
 ## The principle
 
