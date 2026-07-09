@@ -314,7 +314,6 @@ dutch_syllabifier/data/
   diphthongs.json
   consonants.json
   legal_onsets.json
-  illegal_onsets.json
   legal_codas.json
   syllabification_rules.md
   celex_onset_coda_counts.json      ← CountSyllabifier artifact

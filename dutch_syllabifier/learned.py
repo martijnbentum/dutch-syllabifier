@@ -179,4 +179,9 @@ class ClassifierSyllabifier(_LearnedSyllabifier):
 
     def probability(self, labels, boundary):
         '''Sigmoid of score: boundary probability in isolation.'''
-        return 1 / (1 + math.exp(-self.score(labels, boundary)))
+        score = self.score(labels, boundary)
+        if score >= 0:
+            z = math.exp(-score)
+            return 1 / (1 + z)
+        z = math.exp(score)
+        return z / (1 + z)

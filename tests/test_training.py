@@ -76,8 +76,37 @@ def test_trained_models_fit_training_set():
         assert classifier.boundary_indices(phones) == gold
 
 
+def test_train_classifier_uses_explicit_l1_penalty(monkeypatch):
+    captured = {}
+
+    class FakeLogisticRegression:
+
+        def __init__(self, **kwargs):
+            captured.update(kwargs)
+
+        def fit(self, matrix, targets):
+            self.coef_ = [[0.0] * matrix.shape[1]]
+            self.intercept_ = [0.0]
+
+    monkeypatch.setattr(
+        'dutch_syllabifier.training.classifier.LogisticRegression',
+        FakeLogisticRegression,
+    )
+
+    train_classifier(EXAMPLES, min_count=1, verbose=False)
+
+    assert captured['penalty'] == 'l1'
+    assert captured['solver'] == 'liblinear'
+    assert 'l1_ratio' not in captured
+
+
 def test_evaluate_baseline():
     scores = evaluate(rule_boundaries, EXAMPLES)
     assert scores['n'] == len(EXAMPLES)
     assert scores['word_accuracy'] == 1.0
     assert scores['failed'] == 0
+
+
+def test_evaluate_empty_examples_raises_clear_error():
+    with pytest.raises(ValueError, match='empty example set'):
+        evaluate(rule_boundaries, [])

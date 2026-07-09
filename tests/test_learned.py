@@ -48,6 +48,14 @@ def test_classifier_syllabifier_scores_boundaries():
     assert model.boundary_indices(['ɑ', 'l', 'p', 'ə']) == [2]
 
 
+def test_classifier_probability_handles_extreme_scores():
+    low = ClassifierSyllabifier({'intercept': -1000.0, 'weights': {}})
+    high = ClassifierSyllabifier({'intercept': 1000.0, 'weights': {}})
+
+    assert low.probability(['ɑ', 'p'], 1) == 0.0
+    assert high.probability(['ɑ', 'p'], 1) == 1.0
+
+
 def test_canonical_label_normalizes_input():
     assert canonical_label('w') == 'ʋ'
     assert canonical_label('g') == 'ɡ'

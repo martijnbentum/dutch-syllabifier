@@ -26,6 +26,9 @@ def evaluate(predict, examples):
     the number of words and how many raised ValueError (counted as
     fully wrong).
     '''
+    if not examples:
+        raise ValueError('cannot evaluate an empty example set')
+
     correct, failed = 0, 0
     tp, fp, fn = 0, 0, 0
     for phones, labels, _ in examples:
