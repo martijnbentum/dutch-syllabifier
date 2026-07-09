@@ -76,7 +76,7 @@ def test_trained_models_fit_training_set():
         assert classifier.boundary_indices(phones) == gold
 
 
-def test_train_classifier_uses_explicit_l1_penalty(monkeypatch):
+def test_train_classifier_uses_l1_ratio(monkeypatch):
     captured = {}
 
     class FakeLogisticRegression:
@@ -95,9 +95,9 @@ def test_train_classifier_uses_explicit_l1_penalty(monkeypatch):
 
     train_classifier(EXAMPLES, min_count=1, verbose=False)
 
-    assert captured['penalty'] == 'l1'
+    assert captured['l1_ratio'] == 1
     assert captured['solver'] == 'liblinear'
-    assert 'l1_ratio' not in captured
+    assert 'penalty' not in captured
 
 
 def test_evaluate_baseline():

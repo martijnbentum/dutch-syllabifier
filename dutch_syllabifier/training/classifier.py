@@ -76,7 +76,7 @@ def train_classifier(examples, min_count=3, c=1.0, verbose=True):
     if verbose:
         print(f'training on {matrix.shape[0]} boundary candidates, '
             f'{len(vocabulary)} features')
-    model = LogisticRegression(penalty='l1', solver='liblinear', C=c,
+    model = LogisticRegression(l1_ratio=1, solver='liblinear', C=c,
         random_state=0)
     model.fit(matrix, targets)
     weights = {}
