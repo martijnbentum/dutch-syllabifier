@@ -209,7 +209,7 @@ def test_legality_ok_and_reason_are_derived():
 
 
 def test_unlisted_coda_is_tolerated():
-    # a coda not in the conservative list is noted but does not clear ok
+    # a coda not in the vetted list is noted but does not clear ok
     v = Legality.judge(['ɑ', 'l', 'f', 's', 't'])
     assert v.ok and bool(v)
     assert v.unlisted_coda

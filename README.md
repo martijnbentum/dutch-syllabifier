@@ -134,11 +134,13 @@ The findings are:
 | `no_nucleus`      | syllable has no vowel nucleus                      | yes          |
 | `multiple_nuclei` | syllable has more than one nucleus                 | yes          |
 | `illegal_onset`   | onset is not a legal Dutch onset cluster           | yes          |
-| `unlisted_coda`   | coda is not in the conservative list (tolerated)   | no           |
+| `unlisted_coda`   | coda is not in the vetted list (tolerated)         | no           |
 
-`unlisted_coda` is **noted but tolerated**: it is set, yet `ok` stays `True`,
-because coda validation is conservative (see Scope and limitations).
-`offending_phones` holds the onset or coda that triggered the finding.
+`unlisted_coda` is **noted but tolerated**: it is set, yet `ok` stays `True`.
+The coda list covers every CELEX-attested, sonority-valid word-final coda, so
+this finding is rare and usually points at a loanword, a name, or a
+transcription error (see Scope and limitations). `offending_phones` holds the
+onset or coda that triggered the finding.
 
 ### Check syllable boundaries
 
@@ -324,15 +326,18 @@ dutch_syllabifier/data/
 * Operates only on phonological IPA phone sequences.
 * Ignores spelling and morphology.
 * Uses strict Dutch phonotactics.
-* **Coda validation is conservative and partial**: codas are checked against a
-  curated list that is not exhaustive. It is non-fatal — an unlisted coda sets
-  `Legality.unlisted_coda` but does not clear `ok`, so `is_legal_syllable` never
-  rejects on coda alone, and `check_syllabification` judges boundaries from
-  onsets only.
+* **Coda validation is non-fatal**: codas are checked against a vetted list
+  covering every CELEX-attested, sonority-valid word-final coda. An unlisted
+  coda sets `Legality.unlisted_coda` but does not clear `ok`, so
+  `is_legal_syllable` never rejects on coda alone, and `check_syllabification`
+  judges boundaries from onsets only. Expect this finding to be rare — mostly
+  loanwords, names, and transcription errors.
 * Unknown phone symbols raise a clear `ValueError`.
 
 ## Future refinements
 
+* A strict mode that treats an unlisted coda as fatal, now that the coda list
+  is vetted against CELEX.
 * Optional morphology-aware syllabification for compounds and prefixed words.
 * A permissive mode for loanwords, names, and dialectal variants.
 * Optional support for other phone sets such as CGN/SAMPA or MAUS/BAS symbols.

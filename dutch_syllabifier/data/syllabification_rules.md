@@ -66,13 +66,13 @@ native Dutch inventory plus a few common loan clusters.
 
 ## Coda legality
 
-Coda validation is **conservative and partial** in version 1. A coda is treated
-as legal when it is empty or present in `legal_codas.json`. The list covers the
-common Dutch codas and selected complex clusters (e.g. `/rfst/` in *herfst*),
-but it is not exhaustive. Voiced obstruents are excluded from codas because of
-Dutch final devoicing.
+A coda is treated as legal when it is empty or present in `legal_codas.json`.
+The list is vetted against the CELEX lexicon: it covers every CELEX-attested,
+sonority-valid word-final coda, from single consonants up to complex clusters
+(e.g. `/rfst/` in *herfst*). Voiced obstruents are excluded from codas because
+of Dutch final devoicing.
 
-Because the list is incomplete, coda checking is **non-fatal**: an unlisted coda
+Coda checking is **non-fatal** by policy: an unlisted coda
 is always tolerated. `is_legal_syllable` (which returns a plain `bool`) never
 rejects a syllable on coda grounds alone, and `check_syllabification` judges
 syllable boundaries from nucleus count and onset legality only — never from coda

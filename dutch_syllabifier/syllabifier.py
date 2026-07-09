@@ -60,7 +60,7 @@ class Legality:
         no_nucleus              syllable has no vowel nucleus
         multiple_nuclei         syllable has more than one nucleus
         illegal_onset           onset is not a legal Dutch onset cluster
-        unlisted_coda           coda is not in the conservative list (tolerated)
+        unlisted_coda           coda is not in the vetted list (tolerated)
         offending_phones        the phones that triggered the finding (the
                                 onset or coda), shown in reason
         '''
@@ -80,9 +80,9 @@ class Legality:
         '''Apply the Dutch phonotactic rules to one syllable.
         syllable                a Syllable or list of phones
 
-        Returns a Legality with at most one finding set. Coda validation is
-        conservative, so an unlisted coda is noted but tolerated. Raises
-        ValueError on unknown phones.
+        Returns a Legality with at most one finding set. An unlisted coda is
+        noted but tolerated; the vetted coda list makes that finding rare.
+        Raises ValueError on unknown phones.
         '''
         labels = phones_to_label(_as_phone_list(syllable))
         _check_known(labels)
@@ -133,7 +133,7 @@ def is_legal_syllable(syllable):
     '''True if the syllable is phonotactically legal (unlisted coda tolerated).
     syllable                a Syllable object or a list of IPA phone symbols
 
-    Onset and nucleus checks are reliable; coda validation is conservative and
+    Onset and nucleus checks are fatal; coda validation is non-fatal and
     never rejects on coda grounds alone. Raises ValueError on unknown phones.
     '''
     return Legality.judge(syllable).ok
