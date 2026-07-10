@@ -48,6 +48,13 @@ def is_nucleus(label):
     return canonical_label(label) in NUCLEI
 
 
+def nucleus_indices(labels):
+    '''Return the indices of nucleus (vowel or diphthong) labels.
+    labels                  list of IPA labels
+    '''
+    return [i for i, label in enumerate(labels) if is_nucleus(label)]
+
+
 def is_legal_onset(labels):
     '''Return True if a sequence of labels is a legal Dutch onset.
     labels                  list or tuple of consonant labels (empty is legal)

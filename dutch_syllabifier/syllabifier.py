@@ -14,8 +14,8 @@ def syllabify(phones):
     '''
     phones = list(phones)
     labels = phones_to_label(phones)
-    _check_known(labels)
-    nuclei = _nucleus_indices(labels)
+    phone_inventory.check_known(labels)
+    nuclei = phonotactics.nucleus_indices(labels)
     if not nuclei:
         raise ValueError('phone sequence has no vowel nucleus')
 
@@ -85,8 +85,8 @@ class Legality:
         Raises ValueError on unknown phones.
         '''
         labels = phones_to_label(_as_phone_list(syllable))
-        _check_known(labels)
-        nuclei = _nucleus_indices(labels)
+        phone_inventory.check_known(labels)
+        nuclei = phonotactics.nucleus_indices(labels)
         if len(nuclei) == 0:
             return cls(no_nucleus=True)
         if len(nuclei) > 1:
@@ -289,21 +289,6 @@ def _maximal_onset_split(labels, left, right):
         if phonotactics.is_legal_onset(onset):
             return right - size
     return right
-
-
-def _check_known(labels):
-    '''Raise ValueError if any label is not a known Dutch phone.
-    labels                  list of IPA labels
-    '''
-    for lab in labels:
-        if not phone_inventory.is_known(lab):
-            raise ValueError(f'unknown phone symbol: {lab!r}')
-
-
-def _nucleus_indices(labels):
-    '''Return the indices of nucleus (vowel or diphthong) phones.'''
-    return [i for i, lab in enumerate(labels)
-        if phonotactics.is_nucleus(lab)]
 
 
 def _as_phone_list(syllable):

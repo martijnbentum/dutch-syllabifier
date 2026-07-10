@@ -14,7 +14,6 @@ from importlib import resources
 
 from . import phone_inventory, phonotactics
 from .phones import phones_to_label
-from .syllabifier import _check_known
 from .syllables import Syllable
 
 COUNTS_FILE = 'celex_onset_coda_counts.json'
@@ -56,12 +55,6 @@ def _cv_symbol(label):
     '''V, C or # for one window label.'''
     if label == '#': return '#'
     return 'V' if phonotactics.is_nucleus(label) else 'C'
-
-
-def _nucleus_indices(labels):
-    '''Indices of nucleus (vowel or diphthong) labels.'''
-    return [i for i, label in enumerate(labels)
-        if phonotactics.is_nucleus(label)]
 
 
 def _consonants_before(labels, boundary):
@@ -111,10 +104,10 @@ class _LearnedSyllabifier:
                             with .label)
         '''
         labels = phones_to_label(phones)
-        _check_known(labels)
+        phone_inventory.check_known(labels)
         labels = [phone_inventory.canonical_label(label)
             for label in labels]
-        nuclei = _nucleus_indices(labels)
+        nuclei = phonotactics.nucleus_indices(labels)
         if not nuclei:
             raise ValueError('phone sequence has no vowel nucleus')
         boundaries = []

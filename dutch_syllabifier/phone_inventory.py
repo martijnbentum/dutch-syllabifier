@@ -60,3 +60,12 @@ def canonical_label(label):
 def is_known(label):
     '''Return True if the label is a known Dutch phone (aliases accepted).'''
     return canonical_label(label) in KNOWN_PHONES
+
+
+def check_known(labels):
+    '''Raise ValueError if any label is not a known Dutch phone.
+    labels                  list of IPA labels
+    '''
+    for label in labels:
+        if not is_known(label):
+            raise ValueError(f'unknown phone symbol: {label!r}')

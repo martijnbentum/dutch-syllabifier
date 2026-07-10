@@ -12,7 +12,8 @@ from scipy.sparse import csr_matrix
 from sklearn.linear_model import LogisticRegression
 
 from .. import phone_inventory
-from ..learned import boundary_features, _nucleus_indices
+from ..learned import boundary_features
+from ..phonotactics import nucleus_indices
 
 
 def candidate_positions(phones, labels):
@@ -25,7 +26,7 @@ def candidate_positions(phones, labels):
     canonicalized, mirroring boundary_indices at inference time.
     '''
     canonical = [phone_inventory.canonical_label(p) for p in phones]
-    nuclei = _nucleus_indices(canonical)
+    nuclei = nucleus_indices(canonical)
     for left, right in zip(nuclei, nuclei[1:]):
         for boundary in range(left + 1, right + 1):
             yield canonical, boundary, labels[boundary - 1]
