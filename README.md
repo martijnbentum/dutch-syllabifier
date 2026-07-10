@@ -304,6 +304,18 @@ that has no single-phone equivalent here (e.g. the loanword affricate `dʒ`)
 and words where a syllable does not have exactly one nucleus; splits are
 lemma-disjoint so inflectional families never straddle train and test.
 
+## Development setup
+
+The repository ships a pre-commit hook in `.githook/` that bumps the patch
+version in `pyproject.toml` on every commit. Git only runs it when the hooks
+path is configured, so after cloning run once:
+
+```bash
+git config core.hooksPath .githook
+```
+
+Without this, commits work fine but the version is not bumped.
+
 ## Data files
 
 Machine-readable phonotactic data ships inside the package:
