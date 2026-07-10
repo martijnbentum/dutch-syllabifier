@@ -25,7 +25,7 @@ def candidate_positions(phones, labels):
     gold boundary of that intervowel gap sits there. Phones are
     canonicalized, mirroring boundary_indices at inference time.
     '''
-    canonical = [phone_inventory.canonical_label(p) for p in phones]
+    canonical = phone_inventory.canonical_labels(phones)
     nuclei = nucleus_indices(canonical)
     for left, right in zip(nuclei, nuclei[1:]):
         for boundary in range(left + 1, right + 1):

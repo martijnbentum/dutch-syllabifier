@@ -105,8 +105,7 @@ class _LearnedSyllabifier:
         '''
         labels = phones_to_label(phones)
         phone_inventory.check_known(labels)
-        labels = [phone_inventory.canonical_label(label)
-            for label in labels]
+        labels = phone_inventory.canonical_labels(labels)
         nuclei = phonotactics.nucleus_indices(labels)
         if not nuclei:
             raise ValueError('phone sequence has no vowel nucleus')
@@ -170,8 +169,17 @@ class ClassifierSyllabifier(_LearnedSyllabifier):
             score += self.weights.get(feature, 0.0)
         return score
 
-    def probability(self, labels, boundary):
-        '''Sigmoid of score: boundary probability in isolation.'''
+    def probability(self, phones, boundary):
+        '''Sigmoid of score: boundary probability in isolation.
+        phones              list of phones (IPA strings or objects
+                            with .label)
+        boundary            candidate boundary index (syllable start)
+
+        Raises ValueError on unknown phones.
+        '''
+        labels = phones_to_label(phones)
+        phone_inventory.check_known(labels)
+        labels = phone_inventory.canonical_labels(labels)
         score = self.score(labels, boundary)
         if score >= 0:
             z = math.exp(-score)

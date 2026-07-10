@@ -57,6 +57,13 @@ def canonical_label(label):
     return ALIASES.get(label, label)
 
 
+def canonical_labels(labels):
+    '''Map accepted aliases to their canonical phones.
+    labels                  list of IPA labels
+    '''
+    return [canonical_label(label) for label in labels]
+
+
 def is_known(label):
     '''Return True if the label is a known Dutch phone (aliases accepted).'''
     return canonical_label(label) in KNOWN_PHONES
