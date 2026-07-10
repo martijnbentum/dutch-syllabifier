@@ -29,3 +29,7 @@ class Syllable:
         if not hasattr(other, 'phones'):
             return NotImplemented
         return phones_to_label(self.phones) == phones_to_label(other.phones)
+
+    # phones is a mutable list and legality is assigned after construction,
+    # so Syllable is deliberately unhashable; Phone is immutable and hashable
+    __hash__ = None
